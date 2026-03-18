@@ -1,0 +1,45 @@
+# General
+.env
+.DS_Store
+Thumbs.db
+*.log
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Frontend (Web)
+web/node_modules/
+web/dist/
+web/build/
+web/.env
+web/.env.local
+web/.env.*.local
+web/coverage/
+web/npm-debug.log*
+web/yarn-debug.log*
+web/yarn-error.log*
+
+# Backend (Python)
+backend/venv/
+backend/.venv/
+**/__pycache__/
+backend/*.pyc
+backend/*.pyo
+backend/*.pyd
+backend/.Python
+backend/env/
+backend/.env
+backend/.pytest_cache/
+backend/htmlcov/
+backend/.coverage
+
+# Database
+*.sqlite3
+*.db
+
+# Data exports (temp generated files)
+backend/data/exports/*
+!backend/data/exports/.gitkeep
