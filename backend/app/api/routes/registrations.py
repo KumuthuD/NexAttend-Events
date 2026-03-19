@@ -91,7 +91,7 @@ async def register_for_event(
         {"$inc": {"registration_count": 1}}
     )
 
-    # 8. Trigger email in background (Task 3.3 will wire this up)
+    # 8. Trigger email in background (Task 3.3 — Thisandu will wire this up)
     # background_tasks.add_task(send_registration_email, ...)
 
     return RegistrationResponse(

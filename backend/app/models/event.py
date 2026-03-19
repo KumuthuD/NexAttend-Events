@@ -1,44 +1,104 @@
-"""
-Event model helpers.
-
-NOTE: Full event CRUD is implemented in Task 2.2 (Thisandu: Events API).
-      This file provides the helpers that Task 2.3 (forms/registrations) depends on.
-      When Task 2.2 is merged, any overlapping helpers here should be removed in favour
-      of those in the events route / service.
-"""
+import re
+import string
+import random
 from datetime import datetime, timezone
 from bson import ObjectId
-import re
-import random
-import string
 
 
-def _generate_slug(title: str) -> str:
-    """Convert a title to a URL-friendly slug."""
+def generate_slug(title: str) -> str:
+    """Generate a URL-friendly slug from a title (always adds a random 4-char suffix)."""
     slug = title.lower().strip()
-    slug = re.sub(r"[^a-z0-9\s-]", "", slug)
-    slug = re.sub(r"[\s-]+", "-", slug)
-    slug = slug.strip("-")
-    return slug
-
-
-async def _slug_is_unique(db, slug: str) -> bool:
-    existing = await db["events"].find_one({"slug": slug})
-    return existing is None
+    slug = re.sub(r'[^\w\s-]', '', slug)
+    slug = re.sub(r'[\s_-]+', '-', slug)
+    slug = slug.strip('-')
+    suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=4))
+    return f"{slug}-{suffix}"
 
 
 async def generate_unique_slug(db, title: str) -> str:
-    base_slug = _generate_slug(title)
+    """Generate a slug that is guaranteed unique in the events collection."""
+    base_slug = title.lower().strip()
+    base_slug = re.sub(r'[^\w\s-]', '', base_slug)
+    base_slug = re.sub(r'[\s_-]+', '-', base_slug)
+    base_slug = base_slug.strip('-')
+
     slug = base_slug
-    while not await _slug_is_unique(db, slug):
-        suffix = "".join(random.choices(string.ascii_lowercase + string.digits, k=4))
+    while await db["events"].find_one({"slug": slug}):
+        suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=4))
         slug = f"{base_slug}-{suffix}"
     return slug
 
 
+async def create_event(db, event_data: dict) -> dict:
+    """Insert a new event document."""
+    now = datetime.now(timezone.utc)
+    event_data["created_at"] = now
+    event_data["updated_at"] = now
+    event_data["registration_count"] = 0
+    event_data["checked_in_count"] = 0
+
+    if "slug" not in event_data or not event_data["slug"]:
+        event_data["slug"] = await generate_unique_slug(db, event_data["title"])
+
+    result = await db["events"].insert_one(event_data)
+    created_event = await db["events"].find_one({"_id": result.inserted_id})
+    created_event["id"] = str(created_event.pop("_id"))
+    return created_event
+
+
+async def get_events_by_creator(db, creator_id: str) -> list:
+    """Fetch all events created by a specific user."""
+    cursor = db["events"].find({"creator_id": ObjectId(creator_id)})
+    events = []
+    async for doc in cursor:
+        doc["id"] = str(doc.pop("_id"))
+        events.append(doc)
+    return events
+
+
 async def get_event_by_id(db, event_id: str) -> dict | None:
-    event = await db["events"].find_one({"_id": ObjectId(event_id)})
-    if event:
-        event["id"] = str(event.pop("_id"))
-        event["creator_id"] = str(event["creator_id"])
-    return event
+    """Fetch a single event by ID."""
+    try:
+        oid = ObjectId(event_id)
+    except Exception:
+        return None
+    doc = await db["events"].find_one({"_id": oid})
+    if doc:
+        doc["id"] = str(doc.pop("_id"))
+    return doc
+
+
+async def get_event_by_slug(db, slug: str) -> dict | None:
+    """Fetch a single event by slug."""
+    doc = await db["events"].find_one({"slug": slug})
+    if doc:
+        doc["id"] = str(doc.pop("_id"))
+    return doc
+
+
+async def update_event(db, event_id: str, update_data: dict) -> dict | None:
+    """Update event and return updated document."""
+    update_data["updated_at"] = datetime.now(timezone.utc)
+    try:
+        oid = ObjectId(event_id)
+    except Exception:
+        return None
+
+    result = await db["events"].find_one_and_update(
+        {"_id": oid},
+        {"$set": update_data},
+        return_document=True
+    )
+    if result:
+        result["id"] = str(result.pop("_id"))
+    return result
+
+
+async def delete_event(db, event_id: str) -> bool:
+    """Delete event by ID."""
+    try:
+        oid = ObjectId(event_id)
+    except Exception:
+        return False
+    result = await db["events"].delete_one({"_id": oid})
+    return result.deleted_count > 0
