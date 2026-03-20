@@ -11,6 +11,7 @@ import EventRegistrationPage from './pages/EventRegistrationPage';
 import RegistrationSuccessPage from './pages/RegistrationSuccessPage';
 import ScannerPage from './pages/ScannerPage';
 import AttendanceSheetPage from './pages/AttendanceSheetPage';
+import MyEventsPage from './pages/MyEventsPage';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
 
           {/* Protected Routes (require login) */}
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+          <Route path="/events/my" element={<ProtectedRoute><MyEventsPage /></ProtectedRoute>} />
           <Route path="/events/create" element={<ProtectedRoute><CreateEventPage /></ProtectedRoute>} />
           <Route path="/events/:id/edit" element={<ProtectedRoute><EditEventPage /></ProtectedRoute>} />
           <Route path="/events/:id/scanner" element={<ProtectedRoute><ScannerPage /></ProtectedRoute>} />
