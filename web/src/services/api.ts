@@ -26,6 +26,7 @@ export const getMyEvents = () => api.get('/events');
 export const getEvent = (id: string) => api.get(`/events/${id}`);
 export const updateEvent = (id: string, data: any) => api.put(`/events/${id}`, data);
 export const deleteEvent = (id: string) => api.delete(`/events/${id}`);
+export const updateEventStatus = (id: string, status: string) => api.patch(`/events/${id}/status`, { status });
 export const discoverEvents = (search?: string, category?: string) =>
   api.get('/events/public/discover', { params: { search, category } });
 export const getEventBySlug = (slug: string) => api.get(`/events/public/${slug}`);
