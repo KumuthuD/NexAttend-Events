@@ -51,17 +51,17 @@ const Sidebar = () => {
         })}
       </nav>
 
-      <div className="p-4 border-t border-white/10">
-        <div className="mb-4 px-4">
+      <div className="flex items-center justify-between p-4 border-t border-white/10 mt-auto">
+        <div className="truncate pr-2">
           <p className="text-sm font-medium text-white truncate">{user?.name || 'Event Manager'}</p>
           <p className="text-xs text-gray-500 truncate">{user?.email}</p>
         </div>
         <button 
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all"
+          className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all shrink-0"
+          title="Logout"
         >
           <LogOut size={20} />
-          <span className="font-medium">Logout</span>
         </button>
       </div>
     </div>
