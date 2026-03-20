@@ -9,11 +9,10 @@ async def connect_db():
     global client, db
     try:
         logging.info("Connecting to MongoDB...")
-        client = motor.motor_asyncio.AsyncIOMotorClient(
-            settings.MONGODB_URL, 
-            tls=settings.MONGODB_TLS
-        )
+        # All TLS settings are in the connection URL itself
+        client = motor.motor_asyncio.AsyncIOMotorClient(settings.MONGODB_URL)
         db = client[settings.DATABASE_NAME]
+        await client.admin.command("ping")
         logging.info("Connected to MongoDB successfully.")
     except Exception as e:
         logging.error(f"Error connecting to MongoDB: {e}")

@@ -3,6 +3,7 @@
 .DS_Store
 Thumbs.db
 *.log
+*.md
 
 # IDEs
 .vscode/
@@ -12,6 +13,7 @@ Thumbs.db
 
 # Frontend (Web)
 web/node_modules/
+backend/node_modules/
 web/dist/
 web/build/
 web/.env
@@ -23,6 +25,7 @@ web/yarn-debug.log*
 web/yarn-error.log*
 
 # Backend (Python)
+backend/node_modules/
 backend/venv/
 backend/.venv/
 **/__pycache__/
