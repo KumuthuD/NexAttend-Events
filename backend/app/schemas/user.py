@@ -1,12 +1,9 @@
-from pydantic import BaseModel, EmailStr
-from typing import Optional
-from datetime import datetime
-
+from pydantic import BaseModel, EmailStr, Field
 
 class UserRegisterRequest(BaseModel):
-    name: str
+    name: str = Field(..., min_length=2, max_length=50)
     email: EmailStr
-    password: str
+    password: str = Field(..., min_length=6, max_length=50)
     organization: Optional[str] = None
 
 

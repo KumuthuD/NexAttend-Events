@@ -3,12 +3,12 @@ from typing import Optional, List
 from datetime import datetime
 
 class EventCreateRequest(BaseModel):
-    title: str
-    description: str
+    title: str = Field(..., min_length=3, max_length=100)
+    description: str = Field(..., max_length=1000)
     event_date: datetime
     event_end_date: Optional[datetime] = None
-    location: str
-    capacity: int = 0
+    location: str = Field(..., min_length=2, max_length=200)
+    capacity: int = Field(..., ge=1, description="Capacity must be at least 1")
     category: str
     cover_image_url: Optional[str] = None
 
