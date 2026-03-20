@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { UserPlus, ArrowRight } from 'lucide-react';
+import { UserPlus, ArrowRight, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const RegisterPage = () => {
@@ -42,12 +42,16 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a1a] text-white flex items-center justify-center p-6 relative overflow-hidden font-sans py-12">
+    <div className="min-h-screen bg-[#0a0a1a] text-white flex items-center justify-center p-6 relative overflow-x-hidden font-sans py-12">
       {/* Decorative Background */}
       <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-[#7c3aed]/20 blur-[120px] rounded-full mix-blend-screen pointer-events-none" />
       <div className="absolute bottom-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#00d4ff]/20 blur-[120px] rounded-full mix-blend-screen pointer-events-none" />
 
-      <Link to="/" className="absolute top-6 left-6 flex items-center gap-2">
+      <Link to="/" className="absolute top-6 left-6 flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-sm font-medium transition-colors z-20">
+        <ArrowLeft className="w-4 h-4" /> Back
+      </Link>
+
+      <Link to="/" className="absolute top-6 right-6 hidden sm:flex items-center gap-2">
         <img src="/logo.png" alt="NexAttend Logo" className="w-8 h-8 object-contain" />
         <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00d4ff] to-[#7c3aed]">
           NexAttend Events

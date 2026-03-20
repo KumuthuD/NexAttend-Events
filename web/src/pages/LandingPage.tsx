@@ -5,7 +5,7 @@ import { ClipboardList, QrCode, Download, CalendarPlus, UserCheck, CheckCircle2 
 
 const LandingPage = () => {
   return (
-    <div className="min-h-screen bg-[#0a0a1a] text-white flex flex-col font-sans overflow-hidden">
+    <div className="min-h-screen bg-[#0a0a1a] text-white flex flex-col font-sans overflow-x-hidden">
       {/* Decorative Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#7c3aed]/20 blur-[120px] rounded-full mix-blend-screen" />

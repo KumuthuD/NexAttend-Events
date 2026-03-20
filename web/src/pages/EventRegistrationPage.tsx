@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getEventBySlug, getFormFields, registerForEvent } from '../services/api';
 import { motion } from 'framer-motion';
-import { Calendar, MapPin, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Calendar, MapPin, ArrowRight, CheckCircle2, ArrowLeft } from 'lucide-react';
 
 const EventRegistrationPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -105,7 +105,7 @@ const EventRegistrationPage = () => {
   const isFull = event.capacity > 0 && event.registration_count >= event.capacity;
 
   return (
-    <div className="min-h-screen bg-[#0a0a1a] text-white font-sans flex flex-col items-center pb-20 overflow-hidden relative">
+    <div className="min-h-screen bg-[#0a0a1a] text-white font-sans flex flex-col items-center pb-20 overflow-x-hidden relative">
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#7c3aed]/10 blur-[120px] rounded-full mix-blend-screen pointer-events-none" />
       
       {/* Header Banner */}
@@ -117,7 +117,10 @@ const EventRegistrationPage = () => {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a1a] to-transparent" />
         
-        <Link to="/" className="absolute top-6 left-6 z-20 flex items-center gap-2 group bg-black/30 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 hover:bg-black/50 transition-colors">
+        <button onClick={() => navigate(-1)} className="absolute top-6 left-6 z-20 flex items-center gap-2 text-white hover:text-white transition-colors bg-black/30 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 hover:bg-black/50">
+          <ArrowLeft className="w-4 h-4" /> Back
+        </button>
+        <Link to="/" className="absolute top-6 right-6 z-20 hidden md:flex items-center gap-2 group bg-black/30 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 hover:bg-black/50 transition-colors">
           <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain" />
           <span className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00d4ff] to-[#7c3aed]">
             NexAttend

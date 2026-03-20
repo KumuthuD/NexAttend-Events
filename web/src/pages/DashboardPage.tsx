@@ -44,7 +44,7 @@ const DashboardPage = () => {
   const totalCheckedIn = events.reduce((acc, e) => acc + (e.checked_in_count || 0), 0);
 
   return (
-    <div className="flex min-h-screen bg-[#0a0a1a] text-white font-sans overflow-hidden">
+    <div className="flex h-screen bg-[#0a0a1a] text-white font-sans overflow-hidden">
       <Sidebar />
       
       <main className="flex-1 overflow-y-auto p-8 relative">
@@ -52,26 +52,39 @@ const DashboardPage = () => {
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-radial from-[#7c3aed]/10 via-[#0a0a1a]/0 to-transparent blur-3xl pointer-events-none" />
         
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="flex justify-between items-center mb-10">
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="flex justify-between items-center mb-10 text-white"
+          >
             <div>
               <h1 className="text-3xl font-bold mb-1">Dashboard</h1>
               <p className="text-gray-400">Overview of your events and attendees.</p>
             </div>
             <Link 
               to="/events/create" 
-              className="px-6 py-3 bg-gradient-to-r from-[#00d4ff] to-[#7c3aed] text-white rounded-xl font-medium shadow-[0_0_20px_rgba(124,58,237,0.3)] hover:shadow-[0_0_30px_rgba(124,58,237,0.5)] transition-all flex items-center gap-2"
+              className="px-6 py-3 bg-gradient-to-r from-[#00d4ff] to-[#7c3aed] text-white rounded-xl font-medium shadow-[0_0_20px_rgba(124,58,237,0.3)] hover:shadow-[0_0_30px_rgba(124,58,237,0.5)] transition-all flex items-center gap-2 hover:scale-105"
             >
               <Plus size={20} />
               <span>Create Event</span>
             </Link>
-          </div>
+          </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            <StatsCard icon={<Calendar />} label="Total Events" value={events.length} />
-            <StatsCard icon={<Activity />} label="Active Events" value={activeEvents} />
-            <StatsCard icon={<Users />} label="Total Registrations" value={totalRegistrations} />
-            <StatsCard icon={<CheckCircle />} label="Total Checked In" value={totalCheckedIn} />
-          </div>
+          <motion.div 
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+            }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
+          >
+            <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}><StatsCard icon={<Calendar />} label="Total Events" value={events.length} /></motion.div>
+            <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}><StatsCard icon={<Activity />} label="Active Events" value={activeEvents} /></motion.div>
+            <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}><StatsCard icon={<Users />} label="Total Registrations" value={totalRegistrations} /></motion.div>
+            <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}><StatsCard icon={<CheckCircle />} label="Total Checked In" value={totalCheckedIn} /></motion.div>
+          </motion.div>
 
           <div>
             <div className="flex justify-between items-center mb-6">

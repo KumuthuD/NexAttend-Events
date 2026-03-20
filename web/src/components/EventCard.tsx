@@ -25,10 +25,12 @@ const EventCard: React.FC<EventCardProps> = ({ event, isDashboard = false, onDel
 
   return (
     <motion.div 
-      initial={{ opacity: 0, scale: 0.95 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      viewport={{ once: true }}
-      className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-md flex flex-col group hover:bg-white/10 transition-colors"
+      initial={{ opacity: 0, scale: 0.95, y: 20 }}
+      whileInView={{ opacity: 1, scale: 1, y: 0 }}
+      whileHover={{ y: -5, boxShadow: "0 20px 40px -5px rgba(124, 58, 237, 0.15)" }}
+      transition={{ duration: 0.4, type: "spring", bounce: 0.3 }}
+      viewport={{ once: true, margin: "-50px" }}
+      className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl flex flex-col group hover:bg-white/10 transition-all duration-300"
     >
       <div className="h-48 relative bg-gray-900 overflow-hidden">
         {event.cover_image_url ? (
@@ -97,7 +99,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, isDashboard = false, onDel
           ) : (
             <Link 
               to={`/events/${event.slug}/register`} 
-              className="w-full block text-center bg-white/10 hover:bg-white/20 text-white font-medium py-2.5 rounded-xl transition-colors mt-4 border border-white/5"
+              className="w-full block text-center bg-white/10 hover:bg-gradient-to-r hover:from-[#00d4ff] hover:to-[#7c3aed] hover:border-transparent text-white font-medium py-3 rounded-xl transition-all duration-300 mt-4 border border-white/5 hover:shadow-[0_0_20px_rgba(0,212,255,0.3)] shadow-sm"
             >
               Register Now
             </Link>

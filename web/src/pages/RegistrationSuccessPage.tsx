@@ -16,7 +16,7 @@ const RegistrationSuccessPage = () => {
   const participantName = formData ? (formData['Full Name'] || formData['Name'] || formData['name'] || '') : '';
 
   return (
-    <div className="min-h-screen bg-[#0a0a1a] text-white flex flex-col items-center py-16 px-6 relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-[#0a0a1a] text-white flex flex-col items-center py-16 px-6 relative overflow-x-hidden font-sans">
       <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-[#00d4ff]/10 blur-[120px] rounded-full mix-blend-screen pointer-events-none" />
       
       <Link to="/" className="absolute top-6 left-6 flex items-center gap-2">
