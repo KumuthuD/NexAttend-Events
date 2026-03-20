@@ -16,8 +16,41 @@ from app.models.registration import (
     check_duplicate,
 )
 from app.services.qr_service import generate_qr_code_id, generate_qr_image
+from app.services.email_service import send_registration_email
 
 router = APIRouter()
+
+
+async def _background_send_registration_email(
+    to_email: str,
+    participant_name: str,
+    event_title: str,
+    event_date: str,
+    qr_code_id: str,
+    qr_code_base64: str,
+    registration_id: str,
+    db
+):
+    """
+    Background task to send registration email and update registration status.
+    Uses try/except to ensure failures don't crash the background worker.
+    """
+    try:
+        # Format the date if it's a datetime object
+        if hasattr(event_date, "strftime"):
+            event_date = event_date.strftime("%B %d, %Y, %I:%M %p")
+
+        success = send_registration_email(
+            to_email, participant_name, event_title, event_date, qr_code_id, qr_code_base64
+        )
+
+        if success:
+            await db["registrations"].update_one(
+                {"_id": ObjectId(registration_id)},
+                {"$set": {"qr_emailed": True}}
+            )
+    except Exception as e:
+        print(f"FAILED to send background email: {str(e)}")
 
 
 def _validate_oid(oid: str) -> None:
@@ -91,8 +124,25 @@ async def register_for_event(
         {"$inc": {"registration_count": 1}}
     )
 
-    # 8. Trigger email in background (Task 3.3 — Thisandu will wire this up)
-    # background_tasks.add_task(send_registration_email, ...)
+    # 8. Trigger email in background (Task 3.3)
+    participant_name = (
+        body.form_data.get("Full Name")
+        or body.form_data.get("name")
+        or body.form_data.get("Name")
+        or "Participant"
+    )
+
+    background_tasks.add_task(
+        _background_send_registration_email,
+        to_email=email,
+        participant_name=participant_name,
+        event_title=event.get("title", ""),
+        event_date=event.get("event_date"),
+        qr_code_id=qr_code_id,
+        qr_code_base64=qr_code_base64,
+        registration_id=registration_id,
+        db=db
+    )
 
     return RegistrationResponse(
         id=registration_id,
