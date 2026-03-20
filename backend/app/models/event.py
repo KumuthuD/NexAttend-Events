@@ -43,6 +43,8 @@ async def create_event(db, event_data: dict) -> dict:
     result = await db["events"].insert_one(event_data)
     created_event = await db["events"].find_one({"_id": result.inserted_id})
     created_event["id"] = str(created_event.pop("_id"))
+    if "creator_id" in created_event:
+        created_event["creator_id"] = str(created_event["creator_id"])
     return created_event
 
 
@@ -52,6 +54,8 @@ async def get_events_by_creator(db, creator_id: str) -> list:
     events = []
     async for doc in cursor:
         doc["id"] = str(doc.pop("_id"))
+        if "creator_id" in doc:
+            doc["creator_id"] = str(doc["creator_id"])
         events.append(doc)
     return events
 
@@ -65,6 +69,8 @@ async def get_event_by_id(db, event_id: str) -> dict | None:
     doc = await db["events"].find_one({"_id": oid})
     if doc:
         doc["id"] = str(doc.pop("_id"))
+        if "creator_id" in doc:
+            doc["creator_id"] = str(doc["creator_id"])
     return doc
 
 
@@ -73,6 +79,8 @@ async def get_event_by_slug(db, slug: str) -> dict | None:
     doc = await db["events"].find_one({"slug": slug})
     if doc:
         doc["id"] = str(doc.pop("_id"))
+        if "creator_id" in doc:
+            doc["creator_id"] = str(doc["creator_id"])
     return doc
 
 
@@ -91,6 +99,8 @@ async def update_event(db, event_id: str, update_data: dict) -> dict | None:
     )
     if result:
         result["id"] = str(result.pop("_id"))
+        if "creator_id" in result:
+            result["creator_id"] = str(result["creator_id"])
     return result
 
 

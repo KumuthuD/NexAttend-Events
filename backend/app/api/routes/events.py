@@ -54,6 +54,8 @@ async def discover_events(
     events = []
     async for doc in cursor:
         doc["id"] = str(doc.pop("_id"))
+        if "creator_id" in doc:
+            doc["creator_id"] = str(doc["creator_id"])
         events.append(doc)
     return {"events": events, "total": len(events)}
 
