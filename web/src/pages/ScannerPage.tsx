@@ -196,24 +196,8 @@ export default function ScannerPage() {
 
       {/* Scanner Viewfinder */}
       <main className="w-full max-w-lg px-6 flex-1 flex flex-col relative">
-        <div className="w-full aspect-square rounded-3xl overflow-hidden border-2 border-white/20 relative shadow-[0_0_40px_rgba(0,212,255,0.1)] mb-6">
+        <div className="w-full aspect-square relative mb-6">
           <QRScanner onScan={handleScan} />
-          
-          {/* Viewfinder overlay */}
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="w-full h-full border-[40px] border-black/40 relative">
-              <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-[#00d4ff] -translate-x-1 -translate-y-1"></div>
-              <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-[#00d4ff] translate-x-1 -translate-y-1"></div>
-              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-[#00d4ff] -translate-x-1 translate-y-1"></div>
-              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-[#00d4ff] translate-x-1 translate-y-1"></div>
-            </div>
-            
-            <motion.div 
-              animate={{ y: [0, 250, 0] }}
-              transition={{ repeat: Infinity, duration: 3, ease: 'linear' }}
-              className="absolute left-10 right-10 top-10 h-0.5 bg-[#00d4ff] shadow-[0_0_8px_#00d4ff]"
-            />
-          </div>
         </div>
 
         {/* Scan Result Card */}

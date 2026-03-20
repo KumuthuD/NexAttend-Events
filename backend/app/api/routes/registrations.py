@@ -124,25 +124,25 @@ async def register_for_event(
         {"$inc": {"registration_count": 1}}
     )
 
-    # 8. Trigger email in background (Task 3.3)
-    participant_name = (
-        body.form_data.get("Full Name")
-        or body.form_data.get("name")
-        or body.form_data.get("Name")
-        or "Participant"
-    )
+    # 8. Trigger email in background (Disabled - Switching to EmailJS on Frontend)
+    # participant_name = (
+    #     body.form_data.get("Full Name")
+    #     or body.form_data.get("name")
+    #     or body.form_data.get("Name")
+    #     or "Participant"
+    # )
 
-    background_tasks.add_task(
-        _background_send_registration_email,
-        to_email=email,
-        participant_name=participant_name,
-        event_title=event.get("title", ""),
-        event_date=event.get("event_date"),
-        qr_code_id=qr_code_id,
-        qr_code_base64=qr_code_base64,
-        registration_id=registration_id,
-        db=db
-    )
+    # background_tasks.add_task(
+    #     _background_send_registration_email,
+    #     to_email=email,
+    #     participant_name=participant_name,
+    #     event_title=event.get("title", ""),
+    #     event_date=event.get("event_date"),
+    #     qr_code_id=qr_code_id,
+    #     qr_code_base64=qr_code_base64,
+    #     registration_id=registration_id,
+    #     db=db
+    # )
 
     return RegistrationResponse(
         id=registration_id,

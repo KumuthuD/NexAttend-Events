@@ -1,8 +1,14 @@
+import emailjs from '@emailjs/browser';
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getEventBySlug, getFormFields, registerForEvent } from '../services/api';
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, ArrowRight, CheckCircle2, ArrowLeft } from 'lucide-react';
+
+// EmailJS Configuration - Replace these with your real values from EmailJS Dashboard
+const EMAILJS_SERVICE_ID = "service_1xv6a6l";
+const EMAILJS_TEMPLATE_ID = "template_om2l17u";
+const EMAILJS_PUBLIC_KEY = "FvRTD3Dv3pJS6gj1b";
 
 const EventRegistrationPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -58,6 +64,39 @@ const EventRegistrationPage = () => {
     }));
   };
 
+  const sendConfirmationEmail = async (regRes: any) => {
+    try {
+      const email = formData['Email'] || formData['email'] || '';
+      const name = formData['Full Name'] || formData['Name'] || formData['name'] || 'Participant';
+
+      if (!email || (EMAILJS_SERVICE_ID as string).includes("xxxxxx")) return;
+
+      const templateParams = {
+        email: email,
+        from_name: "NexAttend Events",
+        participant_name: name,
+        event_title: event.title,
+        event_date: new Date(event.event_date).toLocaleString(),
+        event_location: event.location,
+        qr_code_id: regRes.data.qr_code_id,
+        // Optional: Include link to verify directly
+        verify_url: `${window.location.origin}/registration/success/${regRes.data.qr_code_id}`
+      };
+
+      console.log("Sending EmailJS with params:", templateParams);
+
+      const response = await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        templateParams,
+        EMAILJS_PUBLIC_KEY
+      );
+      console.log("Email sent successfully via EmailJS", response.status, response.text);
+    } catch (err) {
+      console.error("EmailJS Full Error Info:", err);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -72,6 +111,9 @@ const EventRegistrationPage = () => {
       
       const res = await registerForEvent(payload);
       const qrCodeId = res.data.qr_code_id;
+      
+      // Trigger EmailJS confirmation (Non-blocking)
+      sendConfirmationEmail(res);
       
       // Navigate to success page
       navigate(`/registration/success/${qrCodeId}`, { state: { event, formData } });

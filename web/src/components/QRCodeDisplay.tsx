@@ -36,7 +36,7 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ value, size = 256 }) => {
           bgColor={"#ffffff"}
           fgColor={"#0a0a1a"}
           level={"H"}
-          includeMargin={false}
+          includeMargin={true}
         />
       </div>
       <button 

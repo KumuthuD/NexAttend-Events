@@ -1,8 +1,10 @@
+import emailjs from '@emailjs/browser';
 import React from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Calendar, MapPin, Mail, Home } from 'lucide-react';
 import QRCodeDisplay from '../components/QRCodeDisplay';
+import { EMAILJS_CONFIG } from '../config';
 
 const RegistrationSuccessPage = () => {
   const { qrCodeId } = useParams<{ qrCodeId: string }>();
@@ -12,8 +14,46 @@ const RegistrationSuccessPage = () => {
   const event = state.event;
   const formData = state.formData;
   
+  const [resending, setResending] = React.useState(false);
+  const [resendStatus, setResendStatus] = React.useState<'idle' | 'success' | 'error'>('idle');
+
   // Try to find name/email from form data if passed
   const participantName = formData ? (formData['Full Name'] || formData['Name'] || formData['name'] || '') : '';
+  const participantEmail = formData ? (formData['Email'] || formData['email'] || '') : '';
+
+  const resendEmail = async () => {
+    if (!participantEmail || resending) return;
+    
+    setResending(true);
+    setResendStatus('idle');
+    
+    try {
+      const templateParams = {
+        email: participantEmail,
+        from_name: "NexAttend Events",
+        participant_name: participantName || 'Participant',
+        event_title: event?.title || 'Event',
+        event_date: event ? new Date(event.event_date).toLocaleString() : '',
+        event_location: event?.location || '',
+        qr_code_id: qrCodeId,
+        verify_url: window.location.href
+      };
+
+      await emailjs.send(
+        EMAILJS_CONFIG.SERVICE_ID,
+        EMAILJS_CONFIG.TEMPLATE_ID,
+        templateParams,
+        EMAILJS_CONFIG.PUBLIC_KEY
+      );
+      setResendStatus('success');
+      setTimeout(() => setResendStatus('idle'), 3000);
+    } catch (err) {
+      console.error("Resend Email Error:", err);
+      setResendStatus('error');
+    } finally {
+      setResending(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a1a] text-white flex flex-col items-center py-16 px-6 relative overflow-x-hidden font-sans">
@@ -84,9 +124,28 @@ const RegistrationSuccessPage = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 text-gray-400 text-sm bg-white/5 px-6 py-3 rounded-full border border-white/10 mb-8">
-          <Mail className="w-4 h-4 text-[#00d4ff]" />
-          <span>We've also sent this QR code to your email.</span>
+        <div className="w-full space-y-4 mb-4">
+          <div className="flex items-center justify-between text-gray-400 text-sm bg-white/5 px-6 py-4 rounded-2xl border border-white/10 shadow-lg group hover:border-[#00d4ff]/30 transition-all">
+            <div className="flex items-center gap-3">
+              <Mail className="w-4 h-4 text-[#00d4ff]" />
+              <span>Sent to: {participantEmail || 'your email'}</span>
+            </div>
+            {participantEmail && (
+              <button 
+                onClick={resendEmail}
+                disabled={resending}
+                className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all ${
+                  resendStatus === 'success' 
+                  ? 'bg-green-500/20 border-green-500/50 text-green-400' 
+                  : resendStatus === 'error'
+                  ? 'bg-red-500/20 border-red-500/50 text-red-400'
+                  : 'bg-white/5 border-white/10 text-[#00d4ff] hover:bg-[#00d4ff] hover:text-[#0a0a1a]'
+                } disabled:opacity-50`}
+              >
+                {resending ? 'Sending...' : resendStatus === 'success' ? 'Sent!' : resendStatus === 'error' ? 'Failed' : 'Resend'}
+              </button>
+            )}
+          </div>
         </div>
 
         <Link 
