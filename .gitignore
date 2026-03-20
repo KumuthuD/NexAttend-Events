@@ -24,6 +24,7 @@ web/yarn-debug.log*
 web/yarn-error.log*
 
 # Backend (Python)
+backend/node_modules/
 backend/venv/
 backend/.venv/
 **/__pycache__/
