@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Confirmation - {{ event_title }}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f9;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background-color: #1a73e8;
+            color: #ffffff;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 10px 0 0;
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .welcome-msg {
+            font-size: 18px;
+            font-weight: 500;
+            color: #1a73e8;
+            margin-bottom: 20px;
+        }
+        .event-details {
+            background-color: #e8f0fe;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 25px;
+        }
+        .event-details h2 {
+            margin: 0 0 10px;
+            font-size: 18px;
+            color: #1a73e8;
+        }
+        .event-details p {
+            margin: 5px 0;
+            font-size: 15px;
+        }
+        .qr-section {
+            text-align: center;
+            padding: 20px;
+            border: 2px dashed #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        .qr-code {
+            max-width: 200px;
+            margin: 0 auto 15px;
+            display: block;
+        }
+        .qr-instruction {
+            font-size: 14px;
+            color: #666;
+            font-style: italic;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #eeeeee;
+        }
+        .footer p {
+            margin: 5px 0;
+            font-size: 13px;
+            color: #999;
+        }
+        .brand {
+            font-weight: bold;
+            color: #1a73e8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>You're Registered!</h1>
+            <p>{{ event_title }}</p>
+        </div>
+        <div class="content">
+            <p class="welcome-msg">Hi {{ participant_name }},</p>
+            <p>Your registration for <strong>{{ event_title }}</strong> has been confirmed. We're excited to have you join us!</p>
+            
+            <div class="event-details">
+                <h2>Event Information</h2>
+                <p><strong>Date:</strong> {{ event_date }}</p>
+                <p><strong>QR ID:</strong> {{ qr_code_id }}</p>
+            </div>
+
+            <div class="qr-section">
+                <img src="cid:qrcode" alt="Your QR Code" class="qr-code">
+                <p class="qr-instruction">Present this QR code at the event entrance for a quick check-in.</p>
+            </div>
+
+            <p>If you have any questions, feel free to contact the event organiser.</p>
+        </div>
+        <div class="footer">
+            <p>Sent by <span class="brand">NexAttend Events</span></p>
+            <p>&copy; 2026 NexAttend. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
