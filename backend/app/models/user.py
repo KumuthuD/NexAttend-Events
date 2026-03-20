@@ -33,3 +33,30 @@ async def get_user_by_id(db, user_id: str) -> dict | None:
     if user:
         user["id"] = str(user.pop("_id"))
     return user
+
+
+async def update_user(db, user_id: str, update_data: dict) -> dict | None:
+    """Update user document by ObjectId."""
+    try:
+        oid = ObjectId(user_id)
+    except Exception:
+        return None
+        
+    update_data["updated_at"] = datetime.now(timezone.utc)
+    
+    await db["users"].update_one(
+        {"_id": oid},
+        {"$set": update_data}
+    )
+    return await get_user_by_id(db, user_id)
+
+
+async def delete_user(db, user_id: str) -> bool:
+    """Delete a user document by ObjectId."""
+    try:
+        oid = ObjectId(user_id)
+    except Exception:
+        return False
+        
+    result = await db["users"].delete_one({"_id": oid})
+    return result.deleted_count > 0

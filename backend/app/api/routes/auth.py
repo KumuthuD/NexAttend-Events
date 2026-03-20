@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.api.deps import get_db, get_current_user
-from app.schemas.user import UserRegisterRequest, UserLoginRequest, TokenResponse, UserResponse
-from app.models.user import create_user, get_user_by_email
+from app.schemas.user import UserRegisterRequest, UserLoginRequest, TokenResponse, UserResponse, UserUpdateRequest
+from app.models.user import create_user, get_user_by_email, update_user, delete_user
 from app.core.security import hash_password, verify_password, create_access_token
 
 router = APIRouter()
@@ -72,3 +72,52 @@ async def get_me(current_user: dict = Depends(get_current_user)):
         role=current_user.get("role"),
         created_at=current_user.get("created_at"),
     )
+
+
+@router.put("/me", response_model=UserResponse)
+async def update_me(payload: UserUpdateRequest, current_user: dict = Depends(get_current_user), db=Depends(get_db)):
+    """Update the currently authenticated user's profile."""
+    update_data = payload.dict(exclude_unset=True)
+    
+    # Remove transient fields
+    current_password = update_data.pop("current_password", None)
+    
+    # Hash password if provided
+    if "password" in update_data:
+        # Require current_password
+        if not current_password:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Current password is required to change password."
+            )
+            
+        # Verify current password
+        if not verify_password(current_password, current_user.get("password_hash", "")):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Incorrect current password."
+            )
+            
+        update_data["password_hash"] = hash_password(update_data.pop("password"))
+        
+    updated_user = await update_user(db, current_user["id"], update_data)
+    if not updated_user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    return UserResponse(
+        id=updated_user["id"],
+        name=updated_user["name"],
+        email=updated_user["email"],
+        organization=updated_user.get("organization"),
+        role=updated_user.get("role"),
+        created_at=updated_user.get("created_at"),
+    )
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_me(current_user: dict = Depends(get_current_user), db=Depends(get_db)):
+    """Delete the currently authenticated user's account."""
+    success = await delete_user(db, current_user["id"])
+    if not success:
+        raise HTTPException(status_code=404, detail="Failed to delete user account.")
+    return None

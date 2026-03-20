@@ -3,6 +3,7 @@ import * as api from '../services/api';
 
 interface AuthContextType {
   user: any;
+  setUser: React.Dispatch<React.SetStateAction<any>>;
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
   register: (data: any) => Promise<void>;
@@ -56,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, setUser, token, login, register, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

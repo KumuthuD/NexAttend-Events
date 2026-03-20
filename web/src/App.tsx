@@ -12,6 +12,7 @@ import RegistrationSuccessPage from './pages/RegistrationSuccessPage';
 import ScannerPage from './pages/ScannerPage';
 import AttendanceSheetPage from './pages/AttendanceSheetPage';
 import MyEventsPage from './pages/MyEventsPage';
+import SettingsPage from './pages/SettingsPage';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
           <Route path="/events/:id/edit" element={<ProtectedRoute><EditEventPage /></ProtectedRoute>} />
           <Route path="/events/:id/scanner" element={<ProtectedRoute><ScannerPage /></ProtectedRoute>} />
           <Route path="/events/:id/attendance" element={<ProtectedRoute><AttendanceSheetPage /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         </Routes>
       </AuthProvider>
     </Router>

@@ -10,6 +10,14 @@ class UserRegisterRequest(BaseModel):
     organization: Optional[str] = None
 
 
+class UserUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    password: Optional[str] = None
+    current_password: Optional[str] = None
+    organization: Optional[str] = None
+
+
+
 class UserLoginRequest(BaseModel):
     email: EmailStr
     password: str

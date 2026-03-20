@@ -19,6 +19,8 @@ api.interceptors.request.use((config) => {
 export const login = (data: { email: string; password: string }) => api.post('/auth/login', data);
 export const register = (data: any) => api.post('/auth/register', data);
 export const getMe = () => api.get('/auth/me');
+export const updateMe = (data: any) => api.put('/auth/me', data);
+export const deleteMe = () => api.delete('/auth/me');
 
 // Events
 export const createEvent = (data: any) => api.post('/events', data);
