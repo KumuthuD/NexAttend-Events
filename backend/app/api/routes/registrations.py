@@ -85,14 +85,19 @@ async def register_for_event(
         raise HTTPException(status_code=400, detail="This event has reached full capacity")
 
     # 3. Extract email from form_data and check for duplicate
-    email = (
-        body.form_data.get("email")
-        or body.form_data.get("Email")
-        or ""
-    ).strip().lower()
+    # Look for common variations of the email key
+    email = ""
+    email_keys = ["email", "Email", "Email Address", "email_address", "EmailAddress"]
+    for key in email_keys:
+        if body.form_data.get(key):
+            email = body.form_data.get(key).strip().lower()
+            break
 
     if not email:
-        raise HTTPException(status_code=400, detail="Email is required in form_data")
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Email is required. Please ensure the form contains an email field. Keys checked: {email_keys}"
+        )
 
     is_duplicate = await check_duplicate(db, body.event_id, email)
     if is_duplicate:

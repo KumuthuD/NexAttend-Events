@@ -161,7 +161,22 @@ export default function ScannerPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a1a] text-white font-sans flex flex-col items-center">
+    <div className="min-h-screen bg-[#0a0a1a] text-white font-sans flex flex-col items-center relative overflow-hidden">
+      {/* Flash Effect overlay */}
+      <AnimatePresence>
+        {lastScan?.status === 'checked_in' && (
+          <motion.div 
+            initial={{ opacity: 0.5 }}
+            animate={{ opacity: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="fixed inset-0 bg-green-500/20 z-[60] pointer-events-none"
+          />
+        )}
+      </AnimatePresence>
+
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#7c3aed]/10 blur-[120px] rounded-full mix-blend-screen pointer-events-none" />
+
       {/* Header */}
       <header className="w-full max-w-lg p-5 flex items-center justify-between border-b border-white/10 bg-white/[0.02]">
         <button 

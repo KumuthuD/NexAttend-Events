@@ -4,10 +4,11 @@ import StatsCard from '../components/StatsCard';
 import EventCard from '../components/EventCard';
 import { getMyEvents, deleteEvent } from '../services/api';
 import { Calendar, Users, CheckCircle, Activity, Plus } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 const DashboardPage = () => {
+  const navigate = useNavigate();
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -62,13 +63,15 @@ const DashboardPage = () => {
               <h1 className="text-3xl font-bold mb-1">Dashboard</h1>
               <p className="text-gray-400">Overview of your events and attendees.</p>
             </div>
-            <Link 
-              to="/events/create" 
-              className="px-6 py-3 bg-gradient-to-r from-[#00d4ff] to-[#7c3aed] text-white rounded-xl font-medium shadow-[0_0_20px_rgba(124,58,237,0.3)] hover:shadow-[0_0_30px_rgba(124,58,237,0.5)] transition-all flex items-center gap-2 hover:scale-105"
+            <motion.div 
+              whileHover={{ scale: 1.05, boxShadow: "0 0 25px rgba(0, 212, 255, 0.4)" }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/events/create')}
+              className="px-6 py-3 bg-gradient-to-r from-[#00d4ff] to-[#7c3aed] text-white rounded-xl font-medium shadow-[0_0_20px_rgba(124,58,237,0.3)] flex items-center gap-2 cursor-pointer transition-shadow"
             >
               <Plus size={20} />
               <span>Create Event</span>
-            </Link>
+            </motion.div>
           </motion.div>
 
           <motion.div 

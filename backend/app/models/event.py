@@ -41,7 +41,18 @@ async def create_event(db, event_data: dict) -> dict:
         event_data["slug"] = await generate_unique_slug(db, event_data["title"])
 
     result = await db["events"].insert_one(event_data)
-    created_event = await db["events"].find_one({"_id": result.inserted_id})
+    event_id = result.inserted_id
+
+    # AUTO-CREATE DEFAULT FORM FIELDS
+    # This matches the frontend's expectation of standard fields
+    default_fields = [
+        {"event_id": event_id, "label": "Full Name", "field_type": "text", "placeholder": "Enter your full name", "required": True, "order": 1, "options": [], "created_at": now},
+        {"event_id": event_id, "label": "Email", "field_type": "email", "placeholder": "Enter your email", "required": True, "order": 2, "options": [], "created_at": now},
+        {"event_id": event_id, "label": "Phone Number", "field_type": "phone", "placeholder": "Enter your phone number", "required": True, "order": 3, "options": [], "created_at": now},
+    ]
+    await db["form_fields"].insert_many(default_fields)
+
+    created_event = await db["events"].find_one({"_id": event_id})
     created_event["id"] = str(created_event.pop("_id"))
     if "creator_id" in created_event:
         created_event["creator_id"] = str(created_event["creator_id"])

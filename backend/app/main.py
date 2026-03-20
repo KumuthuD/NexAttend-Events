@@ -3,6 +3,8 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 
+import os
+
 from app.database.mongodb import connect_db, close_db, get_database
 from app.database.indexes import create_indexes
 from app.api.routes import auth, events, forms, registrations, scanner, export, health
@@ -20,9 +22,10 @@ app = FastAPI(
 )
 
 # CORS Configuration
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Restrict to specific origins in production deployment
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

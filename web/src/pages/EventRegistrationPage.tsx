@@ -66,8 +66,9 @@ const EventRegistrationPage = () => {
 
   const sendConfirmationEmail = async (regRes: any) => {
     try {
-      const email = formData['Email'] || formData['email'] || '';
-      const name = formData['Full Name'] || formData['Name'] || formData['name'] || 'Participant';
+      // Flexible lookup for email and name
+      const email = formData['Email'] || formData['email'] || formData['Email Address'] || formData['email_address'] || '';
+      const name = formData['Full Name'] || formData['Name'] || formData['Full name'] || formData['name'] || 'Participant';
 
       if (!email || (EMAILJS_SERVICE_ID as string).includes("xxxxxx")) return;
 
