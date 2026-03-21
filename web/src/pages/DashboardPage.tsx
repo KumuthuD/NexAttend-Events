@@ -48,7 +48,7 @@ const DashboardPage = () => {
     <div className="flex h-screen bg-[#0a0a1a] text-white font-sans overflow-hidden">
       <Sidebar />
       
-      <main className="flex-1 overflow-y-auto p-8 relative">
+      <main className="flex-1 overflow-y-auto p-4 md:p-8 relative">
         {/* Background gradient */}
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-radial from-[#7c3aed]/10 via-[#0a0a1a]/0 to-transparent blur-3xl pointer-events-none" />
         
@@ -57,7 +57,7 @@ const DashboardPage = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="flex justify-between items-center mb-10 text-white"
+            className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-10 text-white"
           >
             <div>
               <h1 className="text-3xl font-bold mb-1">Dashboard</h1>
