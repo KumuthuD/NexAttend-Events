@@ -165,7 +165,7 @@ const CreateEventPage: React.FC = () => {
         {/* Background glow */}
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-radial from-[#7c3aed]/8 via-transparent to-transparent blur-3xl pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-8 py-10 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-10 relative z-10">
           {/* Page header */}
           <motion.div
             initial={{ opacity: 0, y: -16 }}
@@ -190,7 +190,7 @@ const CreateEventPage: React.FC = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
-              className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 backdrop-blur-xl"
+              className="bg-white/[0.03] border border-white/10 rounded-2xl p-5 md:p-8 backdrop-blur-xl"
             >
               <div className="flex items-center gap-3 mb-8">
                 <div className="p-2.5 bg-[#00d4ff]/10 rounded-xl">
@@ -351,7 +351,7 @@ const CreateEventPage: React.FC = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4, delay: 0.15 }}
-              className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 backdrop-blur-xl xl:sticky xl:top-8"
+              className="bg-white/[0.03] border border-white/10 rounded-2xl p-5 md:p-8 backdrop-blur-xl xl:sticky xl:top-8"
             >
               <FormFieldBuilder fields={fields} onChange={setFields} />
             </motion.div>
@@ -362,7 +362,7 @@ const CreateEventPage: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.25 }}
-            className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 p-6 bg-white/[0.03] border border-white/10 rounded-2xl backdrop-blur-xl"
+            className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 p-5 md:p-6 bg-white/[0.03] border border-white/10 rounded-2xl backdrop-blur-xl"
           >
             <p className="text-sm text-gray-500 text-center sm:text-left">
               You can always edit event details and form fields after creation.
