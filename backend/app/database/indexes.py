@@ -6,7 +6,7 @@ import logging
 
 
 async def create_indexes(db) -> None:
-    """Create all required MongoDB indexes for the application."""
+    """create all required MongoDB indexes for the application."""
     try:
         # ── users ───────────────────────────────────────────────────────────
         # Unique email constraint
