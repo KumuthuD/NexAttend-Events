@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.api.deps import get_current_user, get_db
 from app.schemas.scanner import ScanRequest, ScanResponse
-from app.models.registration import get_registration_by_qr_code_id, mark_checked_in
+from app.models.registration import get_registration_by_qr_code_id, mark_checked_in_atomically
 from app.models.event import get_event_by_id
 from bson import ObjectId
+from app.api.websockets.manager import manager
+import json
 
 router = APIRouter()
 
@@ -13,7 +15,9 @@ async def scan_check_in(
     db=Depends(get_db), 
     current_user=Depends(get_current_user)
 ):
-    reg = await get_registration_by_qr_code_id(db, payload.qr_code_id)
+    # Instead of reading and then writing, we do it atomically
+    is_new_check_in, reg = await mark_checked_in_atomically(db, payload.qr_code_id)
+    
     if not reg:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
@@ -28,7 +32,8 @@ async def scan_check_in(
     participant = reg.get("form_data", {})
     name = participant.get("full_name", participant.get("Full Name", "Participant"))
 
-    if reg.get("checked_in"):
+    if not is_new_check_in:
+        # Already checked in before this specific request
         return ScanResponse(
             status="already_checked_in",
             participant=participant,
@@ -36,21 +41,27 @@ async def scan_check_in(
             message=f"Already checked in at {reg.get('checked_in_at')}"
         )
     
-    updated_reg = await mark_checked_in(db, payload.qr_code_id)
-    if updated_reg:
-        # Increment checked_in_count for event
-        await db["events"].update_one(
-            {"_id": ObjectId(event_id)}, 
-            {"$inc": {"checked_in_count": 1}}
-        )
-        return ScanResponse(
-            status="checked_in",
-            participant=participant,
-            checked_in_at=updated_reg.get("checked_in_at"),
-            message=f"✓ {name} — Checked In"
-        )
+    # It was just checked in uniquely by this request
+    # Increment checked_in_count for event safely
+    await db["events"].update_one(
+        {"_id": ObjectId(event_id)}, 
+        {"$inc": {"checked_in_count": 1}}
+    )
     
-    raise HTTPException(status_code=500, detail="Failed to mark check-in")
+    # Broadcast to live dashboard via WebSocket
+    await manager.broadcast_to_event(str(event_id), {
+        "type": "new_check_in",
+        "registration_id": reg["id"],
+        "participant_name": name,
+        "checked_in_at": reg.get("checked_in_at").isoformat() if reg.get("checked_in_at") else None
+    })
+    
+    return ScanResponse(
+        status="checked_in",
+        participant=participant,
+        checked_in_at=reg.get("checked_in_at"),
+        message=f"✓ {name} — Checked In"
+    )
 
 @router.get("/verify/{qr_code_id}")
 async def verify_registration(
