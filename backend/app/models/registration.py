@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+import random
 from bson import ObjectId
 
 
@@ -12,9 +13,17 @@ async def create_registration(db, event_id: str, form_data: dict, qr_code_id: st
         or ""
     ).strip().lower()
 
+    # Generate a unique 6-digit participant_id
+    while True:
+        participant_id = random.randint(100000, 999999)
+        existing = await db["registrations"].find_one({"participant_id": participant_id})
+        if not existing:
+            break
+
     doc = {
         "event_id": ObjectId(event_id),
         "qr_code_id": qr_code_id,
+        "participant_id": participant_id,
         "form_data": form_data,
         "email": email,
         "checked_in": False,

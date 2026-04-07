@@ -35,7 +35,8 @@ const RegistrationSuccessPage = () => {
         event_title: event?.title || 'Event',
         event_date: event ? new Date(event.event_date).toLocaleString() : '',
         event_location: event?.location || '',
-        qr_code_id: qrCodeId,
+        participant_id: state.resData?.participant_id ? String(state.resData.participant_id) : '',
+        qr_code_id: state.resData?.participant_id ? String(state.resData.participant_id) : qrCodeId,
         verify_url: window.location.href
       };
 
@@ -97,8 +98,10 @@ const RegistrationSuccessPage = () => {
 
           <div className="space-y-4 pt-6 border-t border-white/10 text-sm">
             <div className="flex flex-col">
-              <span className="text-gray-500 text-xs uppercase tracking-wider font-semibold mb-1">Registration ID</span>
-              <span className="font-mono text-[#00d4ff]">{qrCodeId}</span>
+              <span className="text-gray-500 text-xs uppercase tracking-wider font-semibold mb-1">Participant ID</span>
+              <span className="font-mono text-[#00d4ff]">
+                {state.resData?.participant_id ? state.resData.participant_id : qrCodeId}
+              </span>
             </div>
             
             {participantName && (
