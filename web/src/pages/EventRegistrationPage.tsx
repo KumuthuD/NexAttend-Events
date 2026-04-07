@@ -24,9 +24,32 @@ const EventRegistrationPage = () => {
   const [bannerIndex, setBannerIndex] = useState(0);
   const [bannerPaused, setBannerPaused] = useState(false);
 
+  // Gallery images for the banner slideshow (computed before hooks that depend on it)
+  const galleryImages: string[] = event?.gallery_images?.length > 0
+    ? event.gallery_images
+    : (event?.cover_image_url ? [event.cover_image_url] : []);
+  const hasMultipleImages = galleryImages.length > 1;
+
   useEffect(() => {
     if (slug) fetchEventData(slug);
   }, [slug]);
+
+  // Auto-cycle banner images — must be called before any early returns (Rules of Hooks)
+  useEffect(() => {
+    if (!hasMultipleImages || bannerPaused) return;
+    const timer = setInterval(() => {
+      setBannerIndex(prev => (prev + 1) % galleryImages.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [hasMultipleImages, bannerPaused, galleryImages.length]);
+
+  const bannerPrev = useCallback(() => {
+    setBannerIndex(prev => (prev - 1 + galleryImages.length) % galleryImages.length);
+  }, [galleryImages.length]);
+
+  const bannerNext = useCallback(() => {
+    setBannerIndex(prev => (prev + 1) % galleryImages.length);
+  }, [galleryImages.length]);
 
   const fetchEventData = async (eventSlug: string) => {
     setLoading(true);
@@ -148,29 +171,6 @@ const EventRegistrationPage = () => {
 
   // Check if fully booked
   const isFull = event.capacity > 0 && event.registration_count >= event.capacity;
-
-  // Gallery images for the banner slideshow
-  const galleryImages: string[] = event?.gallery_images?.length > 0
-    ? event.gallery_images
-    : (event?.cover_image_url ? [event.cover_image_url] : []);
-  const hasMultipleImages = galleryImages.length > 1;
-
-  // Auto-cycle banner images
-  useEffect(() => {
-    if (!hasMultipleImages || bannerPaused) return;
-    const timer = setInterval(() => {
-      setBannerIndex(prev => (prev + 1) % galleryImages.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [hasMultipleImages, bannerPaused, galleryImages.length]);
-
-  const bannerPrev = useCallback(() => {
-    setBannerIndex(prev => (prev - 1 + galleryImages.length) % galleryImages.length);
-  }, [galleryImages.length]);
-
-  const bannerNext = useCallback(() => {
-    setBannerIndex(prev => (prev + 1) % galleryImages.length);
-  }, [galleryImages.length]);
 
   return (
     <div className="min-h-screen bg-[#0a0a1a] text-white font-sans flex flex-col items-center pb-20 overflow-x-hidden relative">
