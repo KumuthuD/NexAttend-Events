@@ -40,9 +40,39 @@ export default function ScannerPage() {
   useEffect(() => {
     if (!id) return;
     fetchEvent();
-    // Refresh counter every 10 seconds
-    const interval = setInterval(fetchEvent, 10000);
-    return () => clearInterval(interval);
+
+    // Live WebSocket connection for real-time cross-device sync
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const wsUrl = import.meta.env.VITE_API_URL 
+      ? import.meta.env.VITE_API_URL.replace(/^http/, 'ws') + `/ws/events/${id}?token=${token}`
+      : `ws://localhost:8000/ws/events/${id}?token=${token}`;
+
+    const ws = new WebSocket(wsUrl);
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'new_check_in') {
+        // Use the exact count from the backend to prevent duplicate counting!
+        if (data.new_total_count !== undefined) {
+          setEventData(prev => prev ? { ...prev, checked_in_count: data.new_total_count } : prev);
+        } else {
+          setEventData(prev => prev ? { ...prev, checked_in_count: prev.checked_in_count + 1 } : prev);
+        }
+        
+        // Update the manual modal's list in case it is open
+        setRegistrations(prev => prev.map(r => 
+          r.id === data.registration_id 
+            ? { ...r, checked_in: true, checked_in_at: data.checked_in_at }
+            : r
+        ));
+      }
+    };
+
+    return () => {
+      ws.close();
+    };
   }, [id]);
 
   const fetchEvent = async () => {
@@ -88,7 +118,11 @@ export default function ScannerPage() {
       });
       
       if (data.status === 'checked_in') {
-        setEventData(prev => prev ? { ...prev, checked_in_count: prev.checked_in_count + 1 } : prev);
+        if (data.new_total_count !== undefined) {
+          setEventData(prev => prev ? { ...prev, checked_in_count: data.new_total_count } : prev);
+        } else {
+          setEventData(prev => prev ? { ...prev, checked_in_count: prev.checked_in_count + 1 } : prev);
+        }
         // Also update local list so the UI reflects the change immediately
         setRegistrations(prev => prev.map(r => r.qr_code_id === qrCodeId ? { ...r, checked_in: true } : r));
       }
@@ -130,9 +164,13 @@ export default function ScannerPage() {
         timestamp: new Date().toLocaleTimeString()
       });
       
-      // Update count locally
+      // Update count locally securely
       if (data.status === 'checked_in') {
-        setEventData(prev => prev ? { ...prev, checked_in_count: prev.checked_in_count + 1 } : prev);
+        if (data.new_total_count !== undefined) {
+          setEventData(prev => prev ? { ...prev, checked_in_count: data.new_total_count } : prev);
+        } else {
+          setEventData(prev => prev ? { ...prev, checked_in_count: prev.checked_in_count + 1 } : prev);
+        }
       }
       
       // Optional: Play sound

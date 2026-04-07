@@ -56,14 +56,27 @@ async def get_registration_by_qr_code_id(db, qr_code_id: str) -> dict | None:
     return reg
 
 
-async def mark_checked_in(db, qr_code_id: str) -> dict | None:
-    now = datetime.now(timezone.utc)
-    await db["registrations"].update_one(
-        {"qr_code_id": qr_code_id},
-        {"$set": {"checked_in": True, "checked_in_at": now}}
-    )
-    return await get_registration_by_qr_code_id(db, qr_code_id)
+from pymongo import ReturnDocument
 
+async def mark_checked_in_atomically(db, qr_code_id: str) -> tuple[bool, dict | None]:
+    now = datetime.now(timezone.utc)
+    
+    # Try to update only if it hasn't been checked in yet (atomic)
+    updated_reg = await db["registrations"].find_one_and_update(
+        {"qr_code_id": qr_code_id, "checked_in": False},
+        {"$set": {"checked_in": True, "checked_in_at": now}},
+        return_document=ReturnDocument.AFTER
+    )
+    
+    if updated_reg:
+        updated_reg["id"] = str(updated_reg.pop("_id"))
+        updated_reg["event_id"] = str(updated_reg["event_id"])
+        # True means it was uniquely checked in just now
+        return True, updated_reg
+        
+    # If find_one_and_update returned None, it either doesn't exist or is already checked in
+    reg = await get_registration_by_qr_code_id(db, qr_code_id)
+    return False, reg
 
 async def check_duplicate(db, event_id: str, email: str) -> bool:
     """Returns True if the email is already registered for the given event."""

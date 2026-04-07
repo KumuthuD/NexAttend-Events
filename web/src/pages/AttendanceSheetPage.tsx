@@ -24,6 +24,34 @@ export default function AttendanceSheetPage() {
     fetchData();
   }, [id]);
 
+  useEffect(() => {
+    if (!id) return;
+
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const wsUrl = import.meta.env.VITE_API_URL 
+      ? import.meta.env.VITE_API_URL.replace(/^http/, 'ws') + `/ws/events/${id}?token=${token}`
+      : `ws://localhost:8000/ws/events/${id}?token=${token}`;
+
+    const ws = new WebSocket(wsUrl);
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'new_check_in') {
+        setRegistrations(prev => prev.map(reg => 
+          reg.id === data.registration_id 
+            ? { ...reg, checked_in: true, checked_in_at: data.checked_in_at }
+            : reg
+        ));
+      }
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, [id]);
+
   const fetchData = async () => {
     try {
       setLoading(true);

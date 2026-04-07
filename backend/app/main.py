@@ -7,7 +7,7 @@ import os
 
 from app.database.mongodb import connect_db, close_db, get_database
 from app.database.indexes import create_indexes
-from app.api.routes import auth, events, forms, registrations, scanner, export, health
+from app.api.routes import auth, events, forms, registrations, scanner, export, health, websockets
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -48,6 +48,7 @@ app.include_router(forms.router, prefix="/api/v1", tags=["Forms"])
 app.include_router(registrations.router, prefix="/api/v1", tags=["Registrations"])
 app.include_router(scanner.router, prefix="/api/v1/scanner", tags=["Scanner"])
 app.include_router(export.router, prefix="/api/v1/export", tags=["Export"])
+app.include_router(websockets.router, prefix="/ws/events", tags=["WebSockets"])
 
 @app.on_event("startup")
 async def startup():
