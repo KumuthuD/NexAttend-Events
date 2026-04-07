@@ -11,6 +11,7 @@ class RegistrationCreateRequest(BaseModel):
 class RegistrationResponse(BaseModel):
     id: str
     qr_code_id: str
+    participant_id: int
     qr_code_base64: str
     event_title: str
     registered_at: datetime
@@ -20,6 +21,7 @@ class RegistrationDetailResponse(BaseModel):
     id: str
     event_id: str
     qr_code_id: str
+    participant_id: int
     form_data: Dict[str, Any]
     email: str
     checked_in: bool

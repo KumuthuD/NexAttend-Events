@@ -152,6 +152,7 @@ async def register_for_event(
     return RegistrationResponse(
         id=registration_id,
         qr_code_id=qr_code_id,
+        participant_id=doc["participant_id"],
         qr_code_base64=qr_code_base64,
         event_title=event.get("title", ""),
         registered_at=doc["registered_at"],
@@ -183,6 +184,7 @@ async def list_registrations(
             id=reg["id"],
             event_id=reg["event_id"],
             qr_code_id=reg["qr_code_id"],
+            participant_id=reg.get("participant_id", 0), # Fallback to 0 for old data
             form_data=reg["form_data"],
             email=reg["email"],
             checked_in=reg["checked_in"],
@@ -214,6 +216,7 @@ async def get_registration_by_qr(
         id=reg["id"],
         event_id=reg["event_id"],
         qr_code_id=reg["qr_code_id"],
+        participant_id=reg.get("participant_id", 0),
         form_data=reg["form_data"],
         email=reg["email"],
         checked_in=reg["checked_in"],

@@ -79,7 +79,8 @@ const EventRegistrationPage = () => {
         event_title: event.title,
         event_date: new Date(event.event_date).toLocaleString(),
         event_location: event.location,
-        qr_code_id: regRes.data.qr_code_id,
+        participant_id: String(regRes.data.participant_id), // Pass 6-digit ID
+        qr_code_id: String(regRes.data.participant_id), // Pass as backward compatibility if template uses qr_code_id for Ticket ID
         // Optional: Include link to verify directly
         verify_url: `${window.location.origin}/registration/success/${regRes.data.qr_code_id}`
       };
@@ -117,7 +118,7 @@ const EventRegistrationPage = () => {
       sendConfirmationEmail(res);
       
       // Navigate to success page
-      navigate(`/registration/success/${qrCodeId}`, { state: { event, formData } });
+      navigate(`/registration/success/${qrCodeId}`, { state: { event, formData, resData: res.data } });
       
     } catch (err: any) {
       console.error(err);
