@@ -1,9 +1,9 @@
 import emailjs from '@emailjs/browser';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getEventBySlug, getFormFields, registerForEvent } from '../services/api';
-import { motion } from 'framer-motion';
-import { Calendar, MapPin, ArrowRight, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Calendar, MapPin, ArrowRight, CheckCircle2, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 
 // EmailJS Configuration - Replace these with your real values from EmailJS Dashboard
 const EMAILJS_SERVICE_ID = "service_1xv6a6l";
@@ -21,10 +21,35 @@ const EventRegistrationPage = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [bannerIndex, setBannerIndex] = useState(0);
+  const [bannerPaused, setBannerPaused] = useState(false);
+
+  // Gallery images for the banner slideshow (computed before hooks that depend on it)
+  const galleryImages: string[] = event?.gallery_images?.length > 0
+    ? event.gallery_images
+    : (event?.cover_image_url ? [event.cover_image_url] : []);
+  const hasMultipleImages = galleryImages.length > 1;
 
   useEffect(() => {
     if (slug) fetchEventData(slug);
   }, [slug]);
+
+  // Auto-cycle banner images — must be called before any early returns (Rules of Hooks)
+  useEffect(() => {
+    if (!hasMultipleImages || bannerPaused) return;
+    const timer = setInterval(() => {
+      setBannerIndex(prev => (prev + 1) % galleryImages.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [hasMultipleImages, bannerPaused, galleryImages.length]);
+
+  const bannerPrev = useCallback(() => {
+    setBannerIndex(prev => (prev - 1 + galleryImages.length) % galleryImages.length);
+  }, [galleryImages.length]);
+
+  const bannerNext = useCallback(() => {
+    setBannerIndex(prev => (prev + 1) % galleryImages.length);
+  }, [galleryImages.length]);
 
   const fetchEventData = async (eventSlug: string) => {
     setLoading(true);
@@ -151,24 +176,90 @@ const EventRegistrationPage = () => {
     <div className="min-h-screen bg-[#0a0a1a] text-white font-sans flex flex-col items-center pb-20 overflow-x-hidden relative">
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#7c3aed]/10 blur-[120px] rounded-full mix-blend-screen pointer-events-none" />
       
-      {/* Header Banner */}
-      <div className="w-full h-64 md:h-80 relative bg-gray-900 border-b border-white/10">
-        {event.cover_image_url ? (
-           <img src={event.cover_image_url} alt={event.title} className="w-full h-full object-cover opacity-60" />
+      {/* Header Banner with Slideshow */}
+      <div
+        className="w-full h-72 md:h-96 relative bg-gray-900 border-b border-white/10 overflow-hidden group"
+        onMouseEnter={() => setBannerPaused(true)}
+        onMouseLeave={() => setBannerPaused(false)}
+      >
+        {/* Slideshow background images */}
+        {galleryImages.length > 0 ? (
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={bannerIndex}
+              src={galleryImages[bannerIndex]}
+              alt={`${event.title} - Photo ${bannerIndex + 1}`}
+              initial={{ opacity: 0, scale: 1.05 }}
+              animate={{ opacity: 0.55, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.8, ease: 'easeInOut' }}
+              className="absolute inset-0 w-full h-full object-cover"
+              draggable={false}
+            />
+          </AnimatePresence>
         ) : (
-           <div className="w-full h-full bg-gradient-to-br from-[#0a0a1a] to-[#7c3aed]/30" />
+          <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-[#0a0a1a] to-[#7c3aed]/30" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a1a] to-transparent" />
-        
+
+        {/* Gradient overlays */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a1a] via-[#0a0a1a]/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a1a]/30 to-transparent" />
+
+        {/* Navigation arrows (only if multiple images) */}
+        {hasMultipleImages && (
+          <>
+            <button
+              onClick={bannerPrev}
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-black/30 backdrop-blur-md border border-white/10 text-white opacity-0 group-hover:opacity-100 hover:bg-black/50 transition-all duration-300 hover:scale-110"
+              aria-label="Previous image"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <button
+              onClick={bannerNext}
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-black/30 backdrop-blur-md border border-white/10 text-white opacity-0 group-hover:opacity-100 hover:bg-black/50 transition-all duration-300 hover:scale-110"
+              aria-label="Next image"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </>
+        )}
+
+        {/* Dot indicators */}
+        {hasMultipleImages && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+            {galleryImages.map((_: string, idx: number) => (
+              <button
+                key={idx}
+                onClick={() => setBannerIndex(idx)}
+                className={`transition-all duration-300 rounded-full ${
+                  idx === bannerIndex
+                    ? 'w-6 h-2 bg-gradient-to-r from-[#00d4ff] to-[#7c3aed] shadow-[0_0_8px_rgba(0,212,255,0.5)]'
+                    : 'w-2 h-2 bg-white/30 hover:bg-white/60'
+                }`}
+                aria-label={`Go to image ${idx + 1}`}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Nav buttons */}
         <button onClick={() => navigate(-1)} className="absolute top-6 left-6 z-20 flex items-center gap-2 text-white hover:text-white transition-colors bg-black/30 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 hover:bg-black/50">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
-        <Link to="/" className="absolute top-6 right-6 z-20 hidden md:flex items-center gap-2 group bg-black/30 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 hover:bg-black/50 transition-colors">
+        <Link to="/" className="absolute top-6 right-6 z-20 hidden md:flex items-center gap-2 group/logo bg-black/30 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 hover:bg-black/50 transition-colors">
           <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain" />
           <span className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00d4ff] to-[#7c3aed]">
             NexAttend
           </span>
         </Link>
+
+        {/* Image counter badge */}
+        {hasMultipleImages && (
+          <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 px-3 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-xs text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            {bannerIndex + 1} / {galleryImages.length}
+          </div>
+        )}
       </div>
 
       <main className="w-full max-w-3xl mx-auto px-6 -mt-32 relative z-10">
@@ -200,6 +291,8 @@ const EventRegistrationPage = () => {
           <div className="w-full h-px bg-white/10 my-6" />
           <p className="text-gray-400 whitespace-pre-wrap leading-relaxed">{event.description}</p>
         </motion.div>
+
+
 
         {/* Form Section */}
         <motion.div 
