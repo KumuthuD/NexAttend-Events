@@ -4,6 +4,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getEventBySlug, getFormFields, registerForEvent } from '../services/api';
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, ArrowRight, CheckCircle2, ArrowLeft } from 'lucide-react';
+import EventGallerySlideshow from '../components/EventGallerySlideshow';
 
 // EmailJS Configuration - Replace these with your real values from EmailJS Dashboard
 const EMAILJS_SERVICE_ID = "service_1xv6a6l";
@@ -200,6 +201,21 @@ const EventRegistrationPage = () => {
           <div className="w-full h-px bg-white/10 my-6" />
           <p className="text-gray-400 whitespace-pre-wrap leading-relaxed">{event.description}</p>
         </motion.div>
+
+        {/* Gallery Slideshow */}
+        {event.gallery_images && event.gallery_images.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+          >
+            <EventGallerySlideshow
+              images={event.gallery_images}
+              eventTitle={event.title}
+              autoPlayInterval={4000}
+            />
+          </motion.div>
+        )}
 
         {/* Form Section */}
         <motion.div 
