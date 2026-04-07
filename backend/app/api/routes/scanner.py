@@ -41,26 +41,32 @@ async def scan_check_in(
             message=f"Already checked in at {reg.get('checked_in_at')}"
         )
     
+    from pymongo import ReturnDocument
     # It was just checked in uniquely by this request
-    # Increment checked_in_count for event safely
-    await db["events"].update_one(
+    # Increment checked_in_count for event safely and get the new count
+    updated_event = await db["events"].find_one_and_update(
         {"_id": ObjectId(event_id)}, 
-        {"$inc": {"checked_in_count": 1}}
+        {"$inc": {"checked_in_count": 1}},
+        return_document=ReturnDocument.AFTER
     )
+    
+    new_total_count = updated_event.get("checked_in_count", 0) if updated_event else 0
     
     # Broadcast to live dashboard via WebSocket
     await manager.broadcast_to_event(str(event_id), {
         "type": "new_check_in",
         "registration_id": reg["id"],
         "participant_name": name,
-        "checked_in_at": reg.get("checked_in_at").isoformat() if reg.get("checked_in_at") else None
+        "checked_in_at": reg.get("checked_in_at").isoformat() if reg.get("checked_in_at") else None,
+        "new_total_count": new_total_count
     })
     
     return ScanResponse(
         status="checked_in",
         participant=participant,
         checked_in_at=reg.get("checked_in_at"),
-        message=f"✓ {name} — Checked In"
+        message=f"✓ {name} — Checked In",
+        new_total_count=new_total_count
     )
 
 @router.get("/verify/{qr_code_id}")
