@@ -87,24 +87,16 @@ async def register_for_event(
     # 3. Extract email from form_data and check for duplicate
     # Look for common variations of the email key
     email = ""
-    email_keys = ["email", "Email", "Email Address", "email_address", "EmailAddress", "E-Mail", "Contact Email"]
+    email_keys = ["email", "Email", "Email Address", "email_address", "EmailAddress"]
     for key in email_keys:
         if body.form_data.get(key):
-            email = str(body.form_data.get(key)).strip().lower()
+            email = body.form_data.get(key).strip().lower()
             break
-            
-    # Fallback: if no key matches, search all values for a valid-looking email
-    if not email:
-        for val in body.form_data.values():
-            val_str = str(val).strip().lower()
-            if "@" in val_str and "." in val_str and " " not in val_str:
-                email = val_str
-                break
 
     if not email:
         raise HTTPException(
             status_code=400, 
-            detail=f"Email is required. Please ensure the form contains an email address."
+            detail=f"Email is required. Please ensure the form contains an email field. Keys checked: {email_keys}"
         )
 
     is_duplicate = await check_duplicate(db, body.event_id, email)
@@ -137,25 +129,25 @@ async def register_for_event(
         {"$inc": {"registration_count": 1}}
     )
 
-    # 8. Trigger email in background
-    participant_name = (
-        body.form_data.get("Full Name")
-        or body.form_data.get("name")
-        or body.form_data.get("Name")
-        or "Participant"
-    )
+    # 8. Trigger email in background (Disabled - Switching to EmailJS on Frontend)
+    # participant_name = (
+    #     body.form_data.get("Full Name")
+    #     or body.form_data.get("name")
+    #     or body.form_data.get("Name")
+    #     or "Participant"
+    # )
 
-    background_tasks.add_task(
-        _background_send_registration_email,
-        to_email=email,
-        participant_name=participant_name,
-        event_title=event.get("title", ""),
-        event_date=event.get("event_date"),
-        qr_code_id=qr_code_id,
-        qr_code_base64=qr_code_base64,
-        registration_id=registration_id,
-        db=db
-    )
+    # background_tasks.add_task(
+    #     _background_send_registration_email,
+    #     to_email=email,
+    #     participant_name=participant_name,
+    #     event_title=event.get("title", ""),
+    #     event_date=event.get("event_date"),
+    #     qr_code_id=qr_code_id,
+    #     qr_code_base64=qr_code_base64,
+    #     registration_id=registration_id,
+    #     db=db
+    # )
 
     return RegistrationResponse(
         id=registration_id,

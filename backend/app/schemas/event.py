@@ -11,7 +11,6 @@ class EventCreateRequest(BaseModel):
     capacity: int = Field(..., ge=1, description="Capacity must be at least 1")
     category: str
     cover_image_url: Optional[str] = None
-    gallery_images: Optional[List[str]] = []
 
 class EventUpdateRequest(BaseModel):
     title: Optional[str] = None
@@ -22,7 +21,6 @@ class EventUpdateRequest(BaseModel):
     capacity: Optional[int] = None
     category: Optional[str] = None
     cover_image_url: Optional[str] = None
-    gallery_images: Optional[List[str]] = None
 
 class EventStatusUpdate(BaseModel):
     status: str
@@ -40,7 +38,6 @@ class EventResponse(BaseModel):
     status: str
     category: str
     cover_image_url: Optional[str] = None
-    gallery_images: Optional[List[str]] = []
     registration_count: int
     checked_in_count: int
     created_at: datetime
@@ -60,5 +57,4 @@ class EventPublicResponse(BaseModel):
     capacity: int
     registration_count: int
     cover_image_url: Optional[str] = None
-    gallery_images: Optional[List[str]] = []
     category: str
