@@ -423,8 +423,8 @@ const CreateEventPage: React.FC = () => {
                 disabled={saving}
                 className="flex-1 sm:flex-none px-6 py-3 bg-white/10 hover:bg-white/15 text-white rounded-xl transition-all font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {saving ? <Loader2 size={16} className="animate-spin" /> : null}
-                Save as Draft
+                {saving && <Loader2 size={16} className="animate-spin" />}
+                {saving ? 'Saving...' : 'Save as Draft'}
               </button>
 
               {/* Publish */}
@@ -435,12 +435,8 @@ const CreateEventPage: React.FC = () => {
                 disabled={saving}
                 className="flex-1 sm:flex-none px-6 py-3 bg-gradient-to-r from-[#00d4ff] to-[#7c3aed] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:shadow-[0_0_25px_rgba(0,212,255,0.35)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {saving ? (
-                  <Loader2 size={16} className="animate-spin" />
-                ) : (
-                  <Send size={16} />
-                )}
-                Publish Event
+                {saving ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                {saving ? 'Publishing...' : 'Publish Event'}
               </button>
             </div>
           </motion.div>

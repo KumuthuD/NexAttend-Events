@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Sidebar from '../components/Sidebar';
+import { useAuth } from '../contexts/AuthContext';
 import StatsCard from '../components/StatsCard';
 import EventCard from '../components/EventCard';
 import { getMyEvents, deleteEvent, duplicateEvent } from '../services/api';
-import { Calendar, Users, CheckCircle, Activity, Plus, TrendingUp, BarChart2, Clock, Zap } from 'lucide-react';
+import { Calendar, Users, CheckCircle, Activity, Plus, TrendingUp, BarChart2, Zap } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useToast } from '../contexts/ToastContext';
@@ -11,9 +12,17 @@ import ConfirmModal from '../components/ConfirmModal';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import type { Event } from '../types';
 
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
 const DashboardPage = () => {
   const navigate = useNavigate();
   const { success, error: toastError, info } = useToast();
+  const { user } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
@@ -111,8 +120,16 @@ const DashboardPage = () => {
             className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8 text-white"
           >
             <div>
-              <h1 className="text-3xl font-bold mb-1">Dashboard</h1>
-              <p className="text-gray-400">Overview of your events and attendees.</p>
+              <p className="text-sm text-gray-500 mb-1 font-medium tracking-wide uppercase">
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              </p>
+              <h1 className="text-3xl font-bold mb-1">
+                {getGreeting()},{' '}
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#00d4ff] to-[#7c3aed]">
+                  {user?.name?.split(' ')[0] || 'there'}
+                </span>
+              </h1>
+              <p className="text-gray-400">Here's what's happening with your events.</p>
             </div>
             <motion.button
               whileHover={{ scale: 1.05, boxShadow: '0 0 25px rgba(0, 212, 255, 0.4)' }}

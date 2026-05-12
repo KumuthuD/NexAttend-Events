@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Calendar, Plus, Loader2 } from 'lucide-react';
+import { Calendar, Plus } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import EventCard from '../components/EventCard';
 import ConfirmModal from '../components/ConfirmModal';
@@ -97,8 +97,21 @@ export default function MyEventsPage() {
           </div>
 
           {loading ? (
-            <div className="flex justify-center items-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin text-[#00d4ff]" />
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="bg-white/[0.03] border border-white/10 rounded-2xl overflow-hidden animate-pulse">
+                  <div className="h-44 bg-white/[0.05]" />
+                  <div className="p-5 space-y-3">
+                    <div className="h-5 bg-white/10 rounded-lg w-3/4" />
+                    <div className="h-3 bg-white/5 rounded-full w-1/2" />
+                    <div className="h-3 bg-white/5 rounded-full w-2/3" />
+                    <div className="h-1.5 bg-white/5 rounded-full mt-4" />
+                    <div className="grid grid-cols-4 gap-2 pt-3 border-t border-white/5">
+                      {[1, 2, 3, 4].map(j => <div key={j} className="h-9 bg-white/5 rounded-xl" />)}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : events.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
