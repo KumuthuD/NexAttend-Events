@@ -116,10 +116,17 @@ async def update_event(db, event_id: str, update_data: dict) -> dict | None:
 
 
 async def delete_event(db, event_id: str) -> bool:
-    """Delete event by ID."""
+    """Delete event by ID AND cascade-delete all associated registrations and form_fields."""
     try:
         oid = ObjectId(event_id)
     except Exception:
         return False
+
+    # Cascade delete all related documents first
+    await db["registrations"].delete_many({"event_id": oid})
+    await db["form_fields"].delete_many({"event_id": oid})
+
+    # Then delete the event itself
     result = await db["events"].delete_one({"_id": oid})
     return result.deleted_count > 0
+

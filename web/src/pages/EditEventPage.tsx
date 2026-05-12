@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  Calendar, MapPin, Users, Tag, FileImage,
+  Calendar, MapPin, Users, Tag, FileImage, Images,
   Edit, Send, ChevronRight, AlertCircle, Loader2,
-  CheckCircle2, ArrowLeft
+  CheckCircle2, ArrowLeft, X, Plus
 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import FormFieldBuilder, { FormField } from '../components/FormFieldBuilder';
@@ -72,7 +72,7 @@ const EditEventPage: React.FC = () => {
   const [location, setLocation]         = useState('');
   const [capacity, setCapacity]         = useState<number | ''>('');
   const [category, setCategory]         = useState('');
-  const [coverImage, setCoverImage]     = useState('');
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [currentStatus, setCurrentStatus] = useState('');
 
   // — Form fields (loaded from DB, then managed locally) —
@@ -104,7 +104,7 @@ const EditEventPage: React.FC = () => {
         setLocation(ev.location ?? '');
         setCapacity(ev.capacity ?? 0);
         setCategory(ev.category ?? '');
-        setCoverImage(ev.cover_image_url ?? '');
+        setGalleryImages(ev.gallery_images ?? (ev.cover_image_url ? [ev.cover_image_url] : []));
         setCurrentStatus(ev.status ?? 'draft');
 
         // Map backend fields → local FormField shape
@@ -137,13 +137,23 @@ const EditEventPage: React.FC = () => {
     setTimeout(() => setToast(null), 4000);
   };
 
-  // — Image upload —
+  // — Multi-image upload —
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => setCoverImage(ev.target?.result as string);
-    reader.readAsDataURL(file);
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setGalleryImages(prev => [...prev, ev.target?.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setGalleryImages(prev => prev.filter((_, i) => i !== index));
   };
 
   // — Validation —
@@ -176,7 +186,8 @@ const EditEventPage: React.FC = () => {
         location:       location.trim(),
         capacity:       capacity === '' ? 0 : Number(capacity),
         category:       category.toLowerCase(),
-        cover_image_url: coverImage || null,
+        cover_image_url: galleryImages.length > 0 ? galleryImages[0] : null,
+        gallery_images:  galleryImages,
       };
       if (eventEndDate) eventPayload.event_end_date = new Date(eventEndDate).toISOString();
       await updateEvent(id, eventPayload);
@@ -232,7 +243,7 @@ const EditEventPage: React.FC = () => {
     } finally {
       setSaving(false);
     }
-  }, [id, title, description, eventDate, eventEndDate, location, capacity, category, coverImage, fields, originalFieldIds, currentStatus, navigate]);
+  }, [id, title, description, eventDate, eventEndDate, location, capacity, category, galleryImages, fields, originalFieldIds, currentStatus, navigate]);
 
   // ── Loading state ───────────────────────────────────────────────────────────
   if (loadingPage) {
@@ -431,32 +442,56 @@ const EditEventPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Cover Image */}
+                {/* Event Gallery Images */}
                 <div>
                   <label className={labelClass}>
-                    <FileImage size={13} className="inline mr-1 text-gray-400" />
-                    Cover Image <span className="text-gray-600">(optional)</span>
+                    <Images size={13} className="inline mr-1 text-gray-400" />
+                    Event Gallery <span className="text-gray-600">(optional · first image = cover)</span>
                   </label>
-                  {coverImage ? (
-                    <div className="relative rounded-xl overflow-hidden h-36">
-                      <img src={coverImage} alt="Cover" className="w-full h-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => setCoverImage('')}
-                        className="absolute top-2 right-2 px-3 py-1.5 bg-black/60 hover:bg-black/80 text-white text-xs rounded-lg transition-colors backdrop-blur-sm"
-                      >
-                        Change
-                      </button>
+
+                  {galleryImages.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2 mb-3">
+                      {galleryImages.map((img, idx) => (
+                        <div key={idx} className="relative rounded-xl overflow-hidden h-24 group border border-white/10">
+                          <img src={img} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover" />
+                          {idx === 0 && (
+                            <span className="absolute top-1.5 left-1.5 px-2 py-0.5 bg-gradient-to-r from-[#00d4ff] to-[#7c3aed] text-[10px] font-bold text-white rounded-md">
+                              COVER
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => removeGalleryImage(idx)}
+                            className="absolute top-1.5 right-1.5 p-1 bg-black/60 hover:bg-red-500/80 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm"
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                      ))}
+                      <label className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-white/10 rounded-xl hover:border-[#00d4ff]/40 hover:bg-[#00d4ff]/5 transition-all cursor-pointer group">
+                        <Plus size={20} className="text-gray-600 group-hover:text-[#00d4ff] transition-colors" />
+                        <span className="text-[10px] text-gray-600 group-hover:text-gray-400 mt-1">Add More</span>
+                        <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
+                      </label>
                     </div>
-                  ) : (
+                  )}
+
+                  {galleryImages.length === 0 && (
                     <label
                       id="edit-cover-image-upload"
                       className="flex flex-col items-center justify-center h-28 border-2 border-dashed border-white/10 rounded-xl hover:border-[#00d4ff]/40 hover:bg-[#00d4ff]/5 transition-all cursor-pointer group"
                     >
-                      <FileImage size={24} className="text-gray-600 group-hover:text-[#00d4ff] transition-colors mb-2" />
-                      <span className="text-sm text-gray-500 group-hover:text-gray-300 transition-colors">Click to upload image</span>
-                      <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                      <Images size={24} className="text-gray-600 group-hover:text-[#00d4ff] transition-colors mb-2" />
+                      <span className="text-sm text-gray-500 group-hover:text-gray-300 transition-colors">Click to upload images</span>
+                      <span className="text-xs text-gray-600">PNG, JPG · Select multiple files</span>
+                      <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
                     </label>
+                  )}
+
+                  {galleryImages.length > 0 && (
+                    <p className="text-xs text-gray-600 mt-1.5">
+                      {galleryImages.length} image{galleryImages.length > 1 ? 's' : ''} uploaded · These will appear as a slideshow on the registration page
+                    </p>
                   )}
                 </div>
               </div>
