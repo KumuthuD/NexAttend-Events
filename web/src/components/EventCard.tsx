@@ -57,11 +57,16 @@ const EventCard: React.FC<EventCardProps> = ({ event, isDashboard = false, onDel
     <motion.div
       initial={{ opacity: 0, scale: 0.95, y: 20 }}
       whileInView={{ opacity: 1, scale: 1, y: 0 }}
-      whileHover={{ y: -5, boxShadow: '0 20px 40px -5px rgba(124, 58, 237, 0.15)' }}
+      whileHover={{ y: -6 }}
       transition={{ duration: 0.4, type: 'spring', bounce: 0.3 }}
       viewport={{ once: true, margin: '-50px' }}
-      className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl flex flex-col group hover:bg-white/[0.07] transition-all duration-300"
+      className="relative rounded-2xl overflow-hidden flex flex-col group"
+      style={{ isolation: 'isolate' }}
     >
+      {/* Gradient glow border on hover */}
+      <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-[#00d4ff]/0 via-[#7c3aed]/0 to-[#00d4ff]/0 group-hover:from-[#00d4ff]/40 group-hover:via-[#7c3aed]/40 group-hover:to-[#00d4ff]/20 transition-all duration-500 pointer-events-none z-0" />
+      <div className="absolute inset-0 rounded-2xl bg-white/5 border border-white/10 group-hover:bg-white/[0.07] transition-colors duration-300 pointer-events-none z-0" />
+      <div className="relative z-10 flex flex-col flex-1 overflow-hidden rounded-2xl" style={{ backdropFilter: 'blur(16px)' }}>
       {/* Cover Image / Gradient Fallback */}
       <div className="h-48 relative overflow-hidden">
         {event.cover_image_url ? (
@@ -194,6 +199,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, isDashboard = false, onDel
             </Link>
           )}
         </div>
+      </div>
       </div>
     </motion.div>
   );

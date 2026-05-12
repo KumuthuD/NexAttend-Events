@@ -148,6 +148,40 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── Social Proof / Stats bar ── */}
+      <section className="py-14 px-6 border-t border-white/[0.06] relative bg-[#080815]">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10"
+          >
+            {[
+              { value: '500+', label: 'Events Hosted', color: 'from-[#00d4ff] to-[#7c3aed]' },
+              { value: '50K+', label: 'Registrations', color: 'from-[#7c3aed] to-[#ec4899]' },
+              { value: '99.9%', label: 'Uptime', color: 'from-[#22c55e] to-[#00d4ff]' },
+              { value: '< 1s',  label: 'Scan Speed',   color: 'from-[#f59e0b] to-[#ef4444]' },
+            ].map((stat, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08, duration: 0.5 }}
+                className="text-center"
+              >
+                <div className={`text-3xl md:text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r ${stat.color} mb-1`}>
+                  {stat.value}
+                </div>
+                <p className="text-gray-500 text-sm font-medium">{stat.label}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
       {/* ── Features ── */}
       <section className="py-24 px-6 border-t border-white/5 relative bg-[#0a0a1a]">
         <div className="max-w-7xl mx-auto">
