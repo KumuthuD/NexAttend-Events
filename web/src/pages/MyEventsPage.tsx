@@ -1,22 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Calendar, Plus, Loader2 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import EventCard from '../components/EventCard';
-import ConfirmModal from '../components/ConfirmModal';
-import { getMyEvents, deleteEvent, duplicateEvent } from '../services/api';
-import { useToast } from '../contexts/ToastContext';
-import type { Event } from '../types';
+import { getMyEvents, deleteEvent } from '../services/api';
 
 export default function MyEventsPage() {
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-  const [duplicating, setDuplicating] = useState<string | null>(null);
-  
   const navigate = useNavigate();
-  const { success, info, error: toastError } = useToast();
 
   useEffect(() => {
     fetchEvents();
@@ -28,53 +21,27 @@ export default function MyEventsPage() {
       setEvents(res.data?.events || []);
     } catch (err) {
       console.error('Failed to fetch events:', err);
-      toastError('Load Failed', 'Could not load your events.');
     } finally {
       setLoading(false);
     }
   };
 
-  const executeDelete = async () => {
-    if (!deleteTarget) return;
-    try {
-      await deleteEvent(deleteTarget);
-      setEvents(events.filter(e => (e._id || e.id) !== deleteTarget));
-      success('Event Deleted', 'The event and all registrations were completely removed.');
-    } catch (error) {
-      console.error("Failed to delete event", error);
-      toastError('Delete Failed', 'Could not delete the event. Please try again.');
-    } finally {
-      setDeleteTarget(null);
+  const handleDelete = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this event? This action cannot be undone.")) {
+      try {
+        await deleteEvent(id);
+        setEvents(events.filter(e => (e._id || e.id) !== id));
+      } catch (error) {
+        console.error("Failed to delete event", error);
+        alert("Failed to delete event.");
+      }
     }
   };
-
-  const handleDuplicate = async (id: string) => {
-    setDuplicating(id);
-    try {
-      await duplicateEvent(id);
-      info('Event Duplicated', 'A copy was created as a new draft.');
-      await fetchEvents();
-    } catch (err) {
-      toastError('Duplicate Failed', 'Could not duplicate the event.');
-    } finally {
-      setDuplicating(null);
-    }
-  };
-
 
   return (
     <div className="flex h-screen bg-[#0a0a1a] text-white overflow-hidden">
       <Sidebar />
-      <ConfirmModal
-        isOpen={!!deleteTarget}
-        title="Delete Event?"
-        message="This will permanently delete the event, all registrations, and form fields. This action cannot be undone."
-        confirmLabel="Delete Event"
-        cancelLabel="Cancel"
-        danger
-        onConfirm={executeDelete}
-        onCancel={() => setDeleteTarget(null)}
-      />
+      
       <main className="flex-1 overflow-y-auto w-full relative">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-indigo-900/20 via-[#0a0a1a] to-[#0a0a1a] pointer-events-none" />
         
@@ -112,9 +79,7 @@ export default function MyEventsPage() {
                   <EventCard 
                     event={event} 
                     isDashboard={true} 
-                    onDelete={(id) => setDeleteTarget(id)}
-                    onDuplicate={handleDuplicate}
-                    duplicating={duplicating === (event._id || event.id)}
+                    onDelete={handleDelete}
                   />
                 </motion.div>
               ))}

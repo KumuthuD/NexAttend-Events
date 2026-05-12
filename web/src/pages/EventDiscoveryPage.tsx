@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { discoverEvents } from '../services/api';
 import EventCard from '../components/EventCard';
 import { Search, Compass, ArrowLeft } from 'lucide-react';
@@ -6,8 +6,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 const CATEGORIES = ['All', 'Hackathon', 'Workshop', 'Conference', 'Seminar', 'Other'];
-const DATE_FILTERS = ['All', 'Upcoming', 'This Week'] as const;
-type DateFilter = typeof DATE_FILTERS[number];
 
 const EventDiscoveryPage = () => {
   const navigate = useNavigate();
@@ -15,7 +13,6 @@ const EventDiscoveryPage = () => {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [category, setCategory] = useState('All');
-  const [dateFilter, setDateFilter] = useState<DateFilter>('All');
   const [loading, setLoading] = useState(true);
 
   // Debounce logic
@@ -42,23 +39,6 @@ const EventDiscoveryPage = () => {
       setLoading(false);
     }
   };
-
-  const filteredEvents = useMemo(() => {
-    if (dateFilter === 'All') return events;
-    const now = new Date();
-    if (dateFilter === 'Upcoming') {
-      return events.filter(e => new Date(e.event_date) >= now);
-    }
-    if (dateFilter === 'This Week') {
-      const weekEnd = new Date(now);
-      weekEnd.setDate(now.getDate() + 7);
-      return events.filter(e => {
-        const d = new Date(e.event_date);
-        return d >= now && d <= weekEnd;
-      });
-    }
-    return events;
-  }, [events, dateFilter]);
 
   return (
     <div className="min-h-screen bg-[#0a0a1a] text-white font-sans flex flex-col relative overflow-x-hidden">
@@ -119,46 +99,25 @@ const EventDiscoveryPage = () => {
                 </div>
               </motion.div>
               
-              <motion.div
+              <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="flex flex-col items-center gap-4"
+                className="flex flex-wrap items-center justify-center gap-3"
               >
-                {/* Category filters */}
-                <div className="flex flex-wrap items-center justify-center gap-3">
-                  {CATEGORIES.map(cat => (
-                    <button
-                      key={cat}
-                      onClick={() => setCategory(cat)}
-                      className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 backdrop-blur-md ${
-                        category === cat
-                          ? 'bg-gradient-to-r from-[#00d4ff] to-[#7c3aed] text-white shadow-[0_0_20px_rgba(124,58,237,0.4)] border-transparent scale-105'
-                          : 'bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:scale-105'
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Date filters */}
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500 font-medium mr-1">When:</span>
-                  {DATE_FILTERS.map(df => (
-                    <button
-                      key={df}
-                      onClick={() => setDateFilter(df)}
-                      className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
-                        dateFilter === df
-                          ? 'bg-white/20 text-white border border-white/30'
-                          : 'bg-white/5 border border-white/10 text-gray-500 hover:text-white hover:bg-white/10'
-                      }`}
-                    >
-                      {df}
-                    </button>
-                  ))}
-                </div>
+                {CATEGORIES.map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => setCategory(cat)}
+                    className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 backdrop-blur-md ${
+                      category === cat 
+                        ? 'bg-gradient-to-r from-[#00d4ff] to-[#7c3aed] text-white shadow-[0_0_20px_rgba(124,58,237,0.4)] border-transparent scale-105' 
+                        : 'bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:scale-105'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
               </motion.div>
             </div>
           </motion.div>
@@ -171,14 +130,14 @@ const EventDiscoveryPage = () => {
              <div className="flex justify-center py-20">
                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00d4ff]"></div>
              </div>
-          ) : filteredEvents.length === 0 ? (
+          ) : events.length === 0 ? (
             <div className="text-center py-20 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-md">
               <h3 className="text-2xl font-semibold mb-2 text-gray-300">No events found</h3>
               <p className="text-gray-500">Try adjusting your filters or search terms.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredEvents.map((event, index) => (
+              {events.map((event, index) => (
                 <motion.div
                   key={event._id || event.id}
                   initial={{ opacity: 0, scale: 0.95 }}

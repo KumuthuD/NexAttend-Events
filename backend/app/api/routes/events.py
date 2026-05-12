@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import Optional, List
 from bson import ObjectId
-from datetime import datetime, timezone
 from app.api.deps import get_db, get_current_user
 from app.schemas.event import (
     EventCreateRequest, 
@@ -34,23 +33,8 @@ async def create_new_event(payload: EventCreateRequest, current_user=Depends(get
 
 @router.get("/", response_model=EventListResponse)
 async def list_my_events(current_user=Depends(get_current_user), db=Depends(get_db)):
-    """Get all events created by the logged-in user. Auto-transitions past events to 'completed'."""
+    """Get all events created by the logged-in user."""
     events = await get_events_by_creator(db, current_user["id"])
-    now = datetime.now(timezone.utc)
-
-    for event in events:
-        # Auto-transition published/ongoing events to 'completed' if their date has passed
-        if event.get("status") in ("published", "ongoing"):
-            event_date_raw = event.get("event_date")
-            if event_date_raw:
-                event_date = event_date_raw.replace(tzinfo=timezone.utc) if (isinstance(event_date_raw, datetime) and event_date_raw.tzinfo is None) else event_date_raw
-                if event_date and event_date < now:
-                    await db["events"].update_one(
-                        {"_id": ObjectId(event["id"])},
-                        {"$set": {"status": "completed", "updated_at": now}}
-                    )
-                    event["status"] = "completed"
-
     return {"events": events, "total": len(events)}
 
 @router.get("/public/discover")
@@ -128,53 +112,9 @@ async def update_event_status_route(
     updated_event = await update_event(db, id, {"status": payload.status})
     return updated_event
 
-@router.post("/{id}/duplicate", response_model=EventResponse, status_code=status.HTTP_201_CREATED)
-async def duplicate_event(
-    id: str,
-    current_user=Depends(get_current_user),
-    db=Depends(get_db)
-):
-    """Duplicate an existing event as a new draft, including all its form fields."""
-    event = await get_event_by_id(db, id)
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
-    if event["creator_id"] != current_user["id"]:
-        raise HTTPException(status_code=403, detail="Not authorized to duplicate this event")
-
-    # Build a new event data dict from the original (strip metadata fields)
-    new_event_data = {
-        k: v for k, v in event.items()
-        if k not in ("id", "_id", "slug", "created_at", "updated_at", "registration_count", "checked_in_count")
-    }
-    new_event_data["title"] = f"Copy of {event['title']}"
-    new_event_data["status"] = "draft"
-    new_event_data["creator_id"] = ObjectId(current_user["id"])
-
-    new_event = await create_event(db, new_event_data)
-    new_event_id = ObjectId(new_event["id"])
-
-    # Duplicate form fields from original event
-    from app.models.form_field import get_fields_by_event
-    original_fields = await get_fields_by_event(db, id)
-    if original_fields:
-        now = datetime.now(timezone.utc)
-        new_fields = []
-        for field in original_fields:
-            field_copy = {k: v for k, v in field.items() if k not in ("id", "_id", "event_id")}
-            field_copy["event_id"] = new_event_id
-            field_copy["created_at"] = now
-            new_fields.append(field_copy)
-
-        # Remove auto-created default fields first, then re-insert from original
-        await db["form_fields"].delete_many({"event_id": new_event_id})
-        if new_fields:
-            await db["form_fields"].insert_many(new_fields)
-
-    return new_event
-
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_event_route(id: str, current_user=Depends(get_current_user), db=Depends(get_db)):
-    """Delete an event and all its registrations + form fields. Must be the creator."""
+    """Delete an event. Must be the creator."""
     event = await get_event_by_id(db, id)
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
@@ -183,4 +123,3 @@ async def delete_event_route(id: str, current_user=Depends(get_current_user), db
     
     await delete_event(db, id)
     return None
-

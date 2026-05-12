@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { User, Mail, Building, Lock, Save, Loader2, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Building, Lock, Save, Loader2 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
-import ConfirmModal from '../components/ConfirmModal';
-import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
 import { updateMe, deleteMe } from '../services/api';
 
 export default function SettingsPage() {
   const { user, setUser, logout } = useAuth();
   const navigate = useNavigate();
-  const { success, error: toastError } = useToast();
   const [loading, setLoading] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -41,25 +39,11 @@ export default function SettingsPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const getPasswordStrength = (pwd: string): { score: number; label: string; color: string } => {
-    if (!pwd) return { score: 0, label: '', color: '' };
-    let score = 0;
-    if (pwd.length >= 8) score++;
-    if (pwd.length >= 12) score++;
-    if (/[A-Z]/.test(pwd)) score++;
-    if (/[0-9]/.test(pwd)) score++;
-    if (/[^A-Za-z0-9]/.test(pwd)) score++;
-    if (score <= 1) return { score, label: 'Weak', color: 'bg-red-500' };
-    if (score <= 2) return { score, label: 'Fair', color: 'bg-yellow-500' };
-    if (score <= 3) return { score, label: 'Good', color: 'bg-blue-400' };
-    return { score, label: 'Strong', color: 'bg-green-500' };
-  };
-
-  const passwordStrength = getPasswordStrength(formData.password);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setSuccessMsg('');
+    setErrorMsg('');
 
     try {
       // Build payload, only send password if it's not empty
@@ -70,12 +54,12 @@ export default function SettingsPage() {
       
       if (formData.password.trim()) {
         if (!formData.currentPassword.trim()) {
-          toastError('Error', 'Current password is required to change password.');
+          setErrorMsg('Current password is required to change password.');
           setLoading(false);
           return;
         }
         if (formData.password !== formData.confirmPassword) {
-          toastError('Error', 'New passwords do not match.');
+          setErrorMsg('New passwords do not match.');
           setLoading(false);
           return;
         }
@@ -88,31 +72,30 @@ export default function SettingsPage() {
       // Update global context so Sidebar instantly reflects changes
       setUser(res.data);
       
-      success('Profile Updated', 'Your profile info has been saved successfully.');
+      setSuccessMsg('Profile updated successfully!');
       setFormData(prev => ({ ...prev, currentPassword: '', password: '', confirmPassword: '' })); 
+      
+      // Hide success message after 3 seconds
+      setTimeout(() => setSuccessMsg(''), 3000);
     } catch (err: any) {
       console.error(err);
-      toastError('Update Failed', err.response?.data?.detail || 'Failed to update user profile.');
+      setErrorMsg(err.response?.data?.detail || 'Failed to update user profile.');
     } finally {
       setLoading(false);
     }
   };
 
-  const executeDelete = async () => {
-    try {
-      await deleteMe();
-      logout();
-      navigate('/');
-    } catch (err: any) {
-      console.error(err);
-      toastError('Delete Failed', 'Failed to delete account.');
-    } finally {
-      setShowDeleteConfirm(false);
+  const handleDeleteAccount = async () => {
+    if (window.confirm("Are you entirely sure you want to delete your account? This action cannot be undone.")) {
+      try {
+        await deleteMe();
+        logout();
+        navigate('/');
+      } catch (err: any) {
+        console.error(err);
+        setErrorMsg("Failed to delete account.");
+      }
     }
-  };
-
-  const handleDeleteAccount = () => {
-    setShowDeleteConfirm(true);
   };
 
   return (
@@ -130,16 +113,24 @@ export default function SettingsPage() {
             <p className="text-gray-400 mt-2">Update your personal and organizational information.</p>
           </div>
 
-          <ConfirmModal
-            isOpen={showDeleteConfirm}
-            title="Delete Account?"
-            message="This action is permanent. All your events, form fields, and registrations will be completely deleted."
-            danger
-            confirmLabel="Delete Account"
-            cancelLabel="Cancel"
-            onConfirm={executeDelete}
-            onCancel={() => setShowDeleteConfirm(false)}
-          />
+          {successMsg && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+              className="mb-8 p-4 bg-green-500/10 border border-green-500/20 rounded-xl flex items-center gap-3 text-green-400"
+            >
+              <CheckCircle2 className="w-5 h-5" />
+              <p className="font-medium">{successMsg}</p>
+            </motion.div>
+          )}
+
+          {errorMsg && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+              className="mb-8 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-400"
+            >
+              <p className="font-medium">{errorMsg}</p>
+            </motion.div>
+          )}
 
           <motion.form 
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
@@ -170,16 +161,15 @@ export default function SettingsPage() {
                   <label className="text-sm font-medium text-gray-300 ml-1">Email Address</label>
                   <div className="relative">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                    <input
-                      type="email"
+                    <input 
+                      type="email" 
                       name="email"
                       disabled
                       value={formData.email}
-                      className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl pl-12 pr-4 py-3 placeholder-gray-600 focus:outline-none transition-all text-gray-500 cursor-not-allowed"
+                      className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl pl-12 pr-4 py-3 placeholder-gray-600 focus:outline-none focus:border-[#7c3aed]/50 focus:ring-1 focus:ring-[#7c3aed]/50 transition-all text-gray-500 cursor-not-allowed"
                       placeholder="john@example.com"
                     />
                   </div>
-                  <p className="text-xs text-gray-600 ml-1">Email address cannot be changed after registration.</p>
                 </div>
               </div>
 
@@ -217,36 +207,22 @@ export default function SettingsPage() {
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <div className="relative">
-                          <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                          <input
-                            type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl pl-12 pr-4 py-3 placeholder-gray-600 focus:outline-none focus:border-[#7c3aed]/50 focus:ring-1 focus:ring-[#7c3aed]/50 transition-all text-white"
-                            placeholder="New Password"
-                          />
-                        </div>
-                        {formData.password && (
-                          <div className="px-1">
-                            <div className="flex gap-1 mb-1">
-                              {[1,2,3,4].map(i => (
-                                <div key={i} className={`h-1 flex-1 rounded-full transition-all duration-300 ${i <= passwordStrength.score - 1 ? passwordStrength.color : 'bg-white/10'}`} />
-                              ))}
-                            </div>
-                            <p className={`text-xs font-medium ${passwordStrength.score <= 1 ? 'text-red-400' : passwordStrength.score <= 2 ? 'text-yellow-400' : passwordStrength.score <= 3 ? 'text-blue-400' : 'text-green-400'}`}>
-                              {passwordStrength.label} password
-                            </p>
-                          </div>
-                        )}
-                      </div>
-
                       <div className="relative">
                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                        <input
-                          type="password"
+                        <input 
+                          type="password" 
+                          name="password"
+                          value={formData.password}
+                          onChange={handleChange}
+                          className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl pl-12 pr-4 py-3 placeholder-gray-600 focus:outline-none focus:border-[#7c3aed]/50 focus:ring-1 focus:ring-[#7c3aed]/50 transition-all text-white"
+                          placeholder="New Password"
+                        />
+                      </div>
+                      
+                      <div className="relative">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                        <input 
+                          type="password" 
                           name="confirmPassword"
                           value={formData.confirmPassword}
                           onChange={handleChange}
