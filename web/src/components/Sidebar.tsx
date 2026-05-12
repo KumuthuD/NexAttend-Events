@@ -1,14 +1,19 @@
-import React, { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, CalendarPlus, CalendarDays, Settings, LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+
+const SWIPE_THRESHOLD = 60;
 
 const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout, user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  
+
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+
   const navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
     { label: 'Create Event', path: '/events/create', icon: <CalendarPlus size={20} /> },
@@ -21,10 +26,43 @@ const Sidebar = () => {
     navigate('/login');
   };
 
+  // Swipe-to-open: right swipe from left edge opens; left swipe on open sidebar closes
+  useEffect(() => {
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartX.current = e.touches[0].clientX;
+      touchStartY.current = e.touches[0].clientY;
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (touchStartX.current === null || touchStartY.current === null) return;
+      const dx = e.changedTouches[0].clientX - touchStartX.current;
+      const dy = e.changedTouches[0].clientY - touchStartY.current;
+
+      // Only handle horizontal swipes (not vertical scrolls)
+      if (Math.abs(dy) > Math.abs(dx)) return;
+
+      if (!isOpen && dx > SWIPE_THRESHOLD && touchStartX.current < 40) {
+        setIsOpen(true);
+      } else if (isOpen && dx < -SWIPE_THRESHOLD) {
+        setIsOpen(false);
+      }
+
+      touchStartX.current = null;
+      touchStartY.current = null;
+    };
+
+    document.addEventListener('touchstart', onTouchStart, { passive: true });
+    document.addEventListener('touchend', onTouchEnd, { passive: true });
+    return () => {
+      document.removeEventListener('touchstart', onTouchStart);
+      document.removeEventListener('touchend', onTouchEnd);
+    };
+  }, [isOpen]);
+
   return (
     <>
       {/* Mobile Menu Toggle FAB */}
-      <button 
+      <button
         onClick={() => setIsOpen(true)}
         className={`md:hidden fixed bottom-8 right-6 z-40 p-4 bg-gradient-to-r from-[#00d4ff] to-[#7c3aed] shadow-[0_0_20px_rgba(124,58,237,0.4)] rounded-full text-white transition-all transform ${isOpen ? 'scale-0 opacity-0' : 'scale-100 opacity-100 hover:scale-105'}`}
       >
@@ -32,20 +70,20 @@ const Sidebar = () => {
       </button>
 
       {/* Mobile Backdrop */}
-      <div 
+      <div
         className={`md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         onClick={() => setIsOpen(false)}
       />
 
       {/* Sidebar Content */}
       <div className={`
-        fixed md:relative top-0 left-0 h-screen w-64 bg-[#0a0a1a]/95 md:bg-[#0a0a1a]/80 
-        backdrop-blur-xl border-r border-white/10 flex flex-col font-sans z-50 
+        fixed md:relative top-0 left-0 h-screen w-64 bg-[#0a0a1a]/95 md:bg-[#0a0a1a]/80
+        backdrop-blur-xl border-r border-white/10 flex flex-col font-sans z-50
         transition-transform duration-300 ease-in-out shrink-0
         ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
         {/* Close Button Mobile */}
-        <button 
+        <button
           onClick={() => setIsOpen(false)}
           className="md:hidden absolute top-6 right-6 p-2 text-gray-400 hover:text-white bg-white/5 rounded-lg border border-white/10 transition-colors"
         >
@@ -70,8 +108,8 @@ const Sidebar = () => {
                 to={item.path}
                 onClick={() => setIsOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                  isActive 
-                    ? 'bg-gradient-to-r from-[#00d4ff]/20 to-[#7c3aed]/20 text-white shadow-[inset_2px_0_0_#00d4ff]' 
+                  isActive
+                    ? 'bg-gradient-to-r from-[#00d4ff]/20 to-[#7c3aed]/20 text-white shadow-[inset_2px_0_0_#00d4ff]'
                     : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`}
               >
@@ -87,7 +125,7 @@ const Sidebar = () => {
             <p className="text-sm font-medium text-white truncate">{user?.name || 'Event Manager'}</p>
             <p className="text-xs text-gray-500 truncate">{user?.email}</p>
           </div>
-          <button 
+          <button
             onClick={handleLogout}
             className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all shrink-0"
             title="Logout"
