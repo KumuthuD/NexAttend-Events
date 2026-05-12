@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowUpDown, ArrowUp, ArrowDown, CheckCircle2, Clock, SlidersHorizontal, Eye, EyeOff } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, CheckCircle2, Clock, SlidersHorizontal, Eye, EyeOff, ClipboardList } from 'lucide-react';
 
 export interface Registration {
   id: string;
@@ -194,10 +194,12 @@ export default function AttendanceTable({ registrations, fields }: AttendanceTab
               })
             ) : (
               <tr>
-                <td colSpan={(visibleExtraFields?.length || 0) + 5} className="px-6 py-16 text-center text-gray-500">
-                  <div className="flex flex-col items-center gap-2">
-                    <span className="text-2xl">📋</span>
-                    <span>No registrations match your filter.</span>
+                <td colSpan={(visibleExtraFields?.length || 0) + 5} className="px-6 py-16 text-center">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+                      <ClipboardList className="w-5 h-5 text-gray-600" />
+                    </div>
+                    <p className="text-gray-500 text-sm">No registrations match your filter.</p>
                   </div>
                 </td>
               </tr>
